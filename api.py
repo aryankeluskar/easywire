@@ -42,3 +42,13 @@ async def root():
     # print list of files in templates directory
     print(os.listdir())
     return FileResponse("templates/home.html")
+
+@app.post("/data")
+async def data(
+    amount: Annotated[str, Form()] = "",
+    date: Annotated[str, Form()] = "",
+    email: Annotated[str, Form()] = "",
+):
+    print("data")
+    print(amount, date, email)
+    return {"success": True}
