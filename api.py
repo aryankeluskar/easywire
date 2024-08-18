@@ -27,6 +27,7 @@ app.mount(
     name="homepage_files",
 )
 
+
 @app.get("/")
 async def root():
     r"""
@@ -43,12 +44,15 @@ async def root():
     print(os.listdir())
     return FileResponse("templates/home.html")
 
+
 @app.post("/data")
 async def data(
     amount: Annotated[str, Form()] = "",
     date: Annotated[str, Form()] = "",
     email: Annotated[str, Form()] = "",
 ):
-    print("data")
-    print(amount, date, email)
+    # print("data")
+    print("amount: " + amount)
+    print("date: " + date)
+    print("email: " + email)
     return {"success": True}
