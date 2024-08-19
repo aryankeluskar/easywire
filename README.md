@@ -47,4 +47,4 @@ This will start the app on [http://localhost:3000](http://localhost:3000).
 
 
 ## 🌄 Inspiration
-- [Remotion's NextJS Template](https://github.com/remotion-dev/template-next/)
+- [nights & weekends s5](https://buildspace.so/)
