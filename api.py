@@ -26,6 +26,13 @@ app.mount(
     ),
     name="homepage_files",
 )
+app.mount(
+    "/css",
+    StaticFiles(
+        directory=templates_dir,
+    ),
+    name="css",
+)
 
 
 @app.get("/")
