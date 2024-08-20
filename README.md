@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/edcomposer">
-    <h2 align="center">EasyWire - Optimize Global Transactions 🌎</h2>
+    <h2 align="center">EasyWire - Optimize Global Transactions 💸</h2>
   </a>
 </p>
 
