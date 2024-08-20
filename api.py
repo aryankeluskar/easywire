@@ -33,6 +33,13 @@ app.mount(
     ),
     name="css",
 )
+app.mount(
+    "/data",
+    StaticFiles(
+        directory=templates_dir,
+    ),
+    name="data",
+)
 
 
 @app.get("/")
@@ -63,3 +70,35 @@ async def data(
     print("date: " + date)
     print("email: " + email)
     return {"success": True}
+
+@app.get("/graph/usd_inr_all")
+async def graph_usd_inr_all():
+    return FileResponse("data/usd_inr_all.png")
+
+    import pandas as pd
+    from prophet import Prophet
+    df = pd.read_csv('data/usd_inr.csv')
+    print("retrieved usd to inr data")
+    df.columns = ['ds', 'y']
+
+    # remove any NaN or other values
+    df = df.dropna()
+
+    # remove values in Y where there is a .
+    df = df[df['y'] != '.']
+    df.head()
+    
+    import matplotlib.pyplot as plt
+    plt.plot(df['ds'], df['y'])
+    print("retrieved usd to inr data")
+
+    m = Prophet()
+    m.fit(df)
+
+    future = m.make_future_dataframe(periods=365)
+    forecast = m.predict(future)
+    fig2 = m.plot_components(forecast)
+    print(fig2)
+    print(type(fig2))
+    fig2.savefig('data/usd_inr_all.png')
+    return FileResponse("data/usd_inr_all.png")
