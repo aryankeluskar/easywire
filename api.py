@@ -69,7 +69,14 @@ async def data(
     print("amount: " + amount)
     print("date: " + date)
     print("email: " + email)
-    return {"success": True}
+    
+    _res = await calculate(date, float(amount), email)
+    savings = _res[0]
+    final_date = _res[1]
+
+    # redirect to /success
+    return FileResponse("templates/success.html?savings=" + str(savings) + "&final_date=" + final_date)
+
 
 @app.get("/graph/usd_inr_all")
 async def graph_usd_inr_all():
