@@ -78,6 +78,62 @@ async def data(
     return FileResponse("templates/success.html?savings=" + str(savings) + "&final_date=" + final_date)
 
 
+async def calculate(date: str, amount: float, email: str):
+    r"""
+    Function to do the main stuff. Uses prophet to predict the exchange rate. Sentiment analysis is on a separate dashboard for now.
+    """
+
+
+    import pandas as pd
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from prophet import Prophet
+    from prophet.serialize import model_from_json
+    from math import floor
+    import datetime
+
+    print("date: " + date)
+    print("today: " + str(datetime.datetime.now()))
+
+    with open('data/serialized_model.json', 'r') as fin:
+        m = model_from_json(fin.read()) 
+
+    future = m.make_future_dataframe(periods=1826)
+    future['cap'] = 8.5
+    fcst = m.predict(future)
+    fcst
+
+    # get yhat from fcst where ds is between 2024-08-10 and 2024-08-30
+
+    start = '2024-08-01'
+    end = '2024-10-30'
+
+    fy2024 = fcst[(fcst['ds'] > start) & (fcst['ds'] < end)][['ds', 'yhat']]
+
+    # get lowest in fy2024 along with date
+    low = fy2024[fy2024['yhat'] == fy2024['yhat'].min()]
+
+    # get max in fy2024 along with date
+    high = fy2024[fy2024['yhat'] == fy2024['yhat'].max()]
+
+    print(low)
+    print(high)
+
+    low_p = floor(list(low["yhat"])[0])
+    high_p = list(high["yhat"])[0]
+
+    amt = amount
+    print("Current Amount (USD): ", amt)
+
+    # print(f"Amount on {str(low['ds'].values[0])[:10]}: INR", amt*low_p)
+    # print("Saving: INR", (amt*high_p - amt*low_p))
+
+    # print(((high_p-low_p)/low_p)*100)
+    savings = (amt*high_p - amt*low_p)
+    final_date = str(low['ds'].values)
+    return (savings, final_date)
+
+
 @app.get("/graph/usd_inr_all")
 async def graph_usd_inr_all():
     return FileResponse("data/usd_inr_all.png")
