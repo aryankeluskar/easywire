@@ -1,13 +1,30 @@
 import json
 from typing import Annotated
-from fastapi import FastAPI, File, UploadFile, Form
-from fastapi.responses import FileResponse
+
+from fastapi import FastAPI, File, Request, UploadFile, Form
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from dotenv import load_dotenv
+
+from fastapi.templating import Jinja2Templates
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from math import floor
+
+from prophet import Prophet
+from prophet.serialize import model_from_json
+from fastapi.responses import RedirectResponse
+
+import datetime
 import os
 
+from dotenv import load_dotenv
+import urllib
+
 load_dotenv()
+
+TEMPLATES = Jinja2Templates(directory=str("templates"))
 
 app = FastAPI()
 app.add_middleware(
@@ -41,6 +58,8 @@ app.mount(
     name="data",
 )
 
+templates = Jinja2Templates(directory="templates")
+
 
 @app.get("/")
 async def root():
@@ -59,23 +78,35 @@ async def root():
     return FileResponse("templates/home.html")
 
 
-@app.post("/data")
+@app.post("/data", response_class=HTMLResponse)
 async def data(
     amount: Annotated[str, Form()] = "",
     date: Annotated[str, Form()] = "",
     email: Annotated[str, Form()] = "",
+    request: Request = None,
 ):
     # print("data")
     print("amount: " + amount)
     print("date: " + date)
     print("email: " + email)
-    
+
     _res = await calculate(date, float(amount), email)
     savings = _res[0]
-    final_date = _res[1]
+    opt_date = _res[1]
 
-    # redirect to /success
-    return FileResponse("templates/success.html?savings=" + str(savings) + "&final_date=" + final_date)
+    print("savings: " + str(savings))
+    print("optimal date: " + str(opt_date))
+
+    call_str = "/success?savings=" + urllib.parse.quote_plus(str(savings)) + "&opt_date=" + str(opt_date)[2:12]
+    # urlencode call_str
+    print(call_str)
+
+    return TEMPLATES.TemplateResponse(
+        name="success.html",
+        context={"request": request, "savings": savings, "opt_date": opt_date},
+    )
+
+    # return ("../success.html?savings=" + str(savings) + "&opt_date=" + str(opt_date))
 
 
 async def calculate(date: str, amount: float, email: str):
@@ -83,38 +114,29 @@ async def calculate(date: str, amount: float, email: str):
     Function to do the main stuff. Uses prophet to predict the exchange rate. Sentiment analysis is on a separate dashboard for now.
     """
 
-
-    import pandas as pd
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from prophet import Prophet
-    from prophet.serialize import model_from_json
-    from math import floor
-    import datetime
-
     print("date: " + date)
     print("today: " + str(datetime.datetime.now()))
 
-    with open('data/serialized_model.json', 'r') as fin:
-        m = model_from_json(fin.read()) 
+    with open("data/serialized_model.json", "r") as fin:
+        m = model_from_json(fin.read())
 
     future = m.make_future_dataframe(periods=1826)
-    future['cap'] = 8.5
+    future["cap"] = 8.5
     fcst = m.predict(future)
     fcst
 
     # get yhat from fcst where ds is between 2024-08-10 and 2024-08-30
 
-    start = '2024-08-01'
-    end = '2024-10-30'
+    start = "2024-08-01"
+    end = "2024-10-30"
 
-    fy2024 = fcst[(fcst['ds'] > start) & (fcst['ds'] < end)][['ds', 'yhat']]
+    fy2024 = fcst[(fcst["ds"] > start) & (fcst["ds"] < end)][["ds", "yhat"]]
 
     # get lowest in fy2024 along with date
-    low = fy2024[fy2024['yhat'] == fy2024['yhat'].min()]
+    low = fy2024[fy2024["yhat"] == fy2024["yhat"].min()]
 
     # get max in fy2024 along with date
-    high = fy2024[fy2024['yhat'] == fy2024['yhat'].max()]
+    high = fy2024[fy2024["yhat"] == fy2024["yhat"].max()]
 
     print(low)
     print(high)
@@ -129,8 +151,8 @@ async def calculate(date: str, amount: float, email: str):
     # print("Saving: INR", (amt*high_p - amt*low_p))
 
     # print(((high_p-low_p)/low_p)*100)
-    savings = (amt*high_p - amt*low_p)
-    final_date = str(low['ds'].values)
+    savings = amt * high_p - amt * low_p
+    final_date = str(low["ds"].values)
     return (savings, final_date)
 
 
@@ -140,19 +162,21 @@ async def graph_usd_inr_all():
 
     import pandas as pd
     from prophet import Prophet
-    df = pd.read_csv('data/usd_inr.csv')
+
+    df = pd.read_csv("data/usd_inr.csv")
     print("retrieved usd to inr data")
-    df.columns = ['ds', 'y']
+    df.columns = ["ds", "y"]
 
     # remove any NaN or other values
     df = df.dropna()
 
     # remove values in Y where there is a .
-    df = df[df['y'] != '.']
+    df = df[df["y"] != "."]
     df.head()
-    
+
     import matplotlib.pyplot as plt
-    plt.plot(df['ds'], df['y'])
+
+    plt.plot(df["ds"], df["y"])
     print("retrieved usd to inr data")
 
     m = Prophet()
@@ -163,5 +187,5 @@ async def graph_usd_inr_all():
     fig2 = m.plot_components(forecast)
     print(fig2)
     print(type(fig2))
-    fig2.savefig('data/usd_inr_all.png')
+    fig2.savefig("data/usd_inr_all.png")
     return FileResponse("data/usd_inr_all.png")
