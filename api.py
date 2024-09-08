@@ -77,9 +77,11 @@ async def root():
     print(os.listdir())
     return FileResponse("templates/home.html")
 
+
 @app.get("/sucess", response_class=HTMLResponse)
 async def success_demo(request: Request):
     return FileResponse("templates/sucess.html")
+
 
 @app.post("/data", response_class=HTMLResponse)
 async def data(

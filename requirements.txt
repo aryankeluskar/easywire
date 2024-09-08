@@ -1,6 +1,6 @@
-fastapi==0.112.2
+fastapi==0.114.0
 matplotlib==3.8.4
-numpy==2.1.0
+numpy==2.1.1
 pandas==2.2.2
 prophet==1.1.5
 python-dotenv==1.0.1
