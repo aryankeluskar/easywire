@@ -77,6 +77,9 @@ async def root():
     print(os.listdir())
     return FileResponse("templates/home.html")
 
+@app.get("/sucess", response_class=HTMLResponse)
+async def success_demo(request: Request):
+    return FileResponse("templates/sucess.html")
 
 @app.post("/data", response_class=HTMLResponse)
 async def data(
@@ -94,12 +97,10 @@ async def data(
     savings = _res[0]
     opt_date = _res[1]
 
+    savings = round(savings, 3)
+
     print("savings: " + str(savings))
     print("optimal date: " + str(opt_date))
-
-    call_str = "/success?savings=" + urllib.parse.quote_plus(str(savings)) + "&opt_date=" + str(opt_date)[2:12]
-    # urlencode call_str
-    print(call_str)
 
     return TEMPLATES.TemplateResponse(
         name="success.html",
@@ -114,8 +115,10 @@ async def calculate(date: str, amount: float, email: str):
     Function to do the main stuff. Uses prophet to predict the exchange rate. Sentiment analysis is on a separate dashboard for now.
     """
 
+    today = str(datetime.datetime.now())[:11]
+
     print("date: " + date)
-    print("today: " + str(datetime.datetime.now()))
+    print("today: " + today)
 
     with open("data/serialized_model.json", "r") as fin:
         m = model_from_json(fin.read())
@@ -123,14 +126,8 @@ async def calculate(date: str, amount: float, email: str):
     future = m.make_future_dataframe(periods=1826)
     future["cap"] = 8.5
     fcst = m.predict(future)
-    fcst
 
-    # get yhat from fcst where ds is between 2024-08-10 and 2024-08-30
-
-    start = "2024-08-01"
-    end = "2024-10-30"
-
-    fy2024 = fcst[(fcst["ds"] > start) & (fcst["ds"] < end)][["ds", "yhat"]]
+    fy2024 = fcst[(fcst["ds"] > today) & (fcst["ds"] < date)][["ds", "yhat"]]
 
     # get lowest in fy2024 along with date
     low = fy2024[fy2024["yhat"] == fy2024["yhat"].min()]
