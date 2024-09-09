@@ -89,7 +89,7 @@ async def success_demo(request: Request):
     return FileResponse("./docker/templates/success_trial.html")
 
 
-@app.post("/data", response_class=HTMLResponse)
+@app.post("/success", response_class=HTMLResponse)
 async def data(
     amount: Annotated[str, Form()] = "",
     date: Annotated[str, Form()] = "",
