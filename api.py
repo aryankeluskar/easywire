@@ -104,7 +104,6 @@ async def data(
     _res = await calculate(date, float(amount), email)
     savings = _res[0]
     opt_date = _res[1]
-    percent = _res[2]
     print(percent)
 
     savings = round(savings, 3)
