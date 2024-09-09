@@ -370,6 +370,9 @@
       document.getElementById('dropzone-text-right').innerText = 'for uploading!';
       document.getElementById('dropzone-text-bottom').innerText = file.name;
     }
+
+    // set min date of date input to today
+    document.getElementById('date').min = new Date().toISOString().split('T')[0];
   </script>
 
 </body>

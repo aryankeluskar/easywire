@@ -1,26 +1,19 @@
-import json
 from typing import Annotated
 
-from fastapi import FastAPI, File, Request, UploadFile, Form
+from fastapi import FastAPI, Request, Form
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from fastapi.templating import Jinja2Templates
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 from math import floor
 
-from prophet import Prophet
 from prophet.serialize import model_from_json
-from fastapi.responses import RedirectResponse
 
 import datetime
 import os
 
 from dotenv import load_dotenv
-import urllib
 
 load_dotenv()
 
@@ -77,11 +70,9 @@ async def root():
     print(os.listdir())
     return FileResponse("templates/home.html")
 
-
 @app.get("/sucess", response_class=HTMLResponse)
 async def success_demo(request: Request):
     return FileResponse("templates/sucess.html")
-
 
 @app.post("/data", response_class=HTMLResponse)
 async def data(
@@ -159,32 +150,32 @@ async def calculate(date: str, amount: float, email: str):
 async def graph_usd_inr_all():
     return FileResponse("data/usd_inr_all.png")
 
-    import pandas as pd
-    from prophet import Prophet
+    # import pandas as pd
+    # from prophet import Prophet
 
-    df = pd.read_csv("data/usd_inr.csv")
-    print("retrieved usd to inr data")
-    df.columns = ["ds", "y"]
+    # df = pd.read_csv("data/usd_inr.csv")
+    # print("retrieved usd to inr data")
+    # df.columns = ["ds", "y"]
 
-    # remove any NaN or other values
-    df = df.dropna()
+    # # remove any NaN or other values
+    # df = df.dropna()
 
-    # remove values in Y where there is a .
-    df = df[df["y"] != "."]
-    df.head()
+    # # remove values in Y where there is a .
+    # df = df[df["y"] != "."]
+    # df.head()
 
-    import matplotlib.pyplot as plt
+    # import matplotlib.pyplot as plt
 
-    plt.plot(df["ds"], df["y"])
-    print("retrieved usd to inr data")
+    # plt.plot(df["ds"], df["y"])
+    # print("retrieved usd to inr data")
 
-    m = Prophet()
-    m.fit(df)
+    # m = Prophet()
+    # m.fit(df)
 
-    future = m.make_future_dataframe(periods=365)
-    forecast = m.predict(future)
-    fig2 = m.plot_components(forecast)
-    print(fig2)
-    print(type(fig2))
-    fig2.savefig("data/usd_inr_all.png")
-    return FileResponse("data/usd_inr_all.png")
+    # future = m.make_future_dataframe(periods=365)
+    # forecast = m.predict(future)
+    # fig2 = m.plot_components(forecast)
+    # print(fig2)
+    # print(type(fig2))
+    # fig2.savefig("data/usd_inr_all.png")
+    # return FileResponse("data/usd_inr_all.png")
