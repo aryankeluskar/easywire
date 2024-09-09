@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-TEMPLATES = Jinja2Templates(directory=str("./docker/templates"))
+TEMPLATES = Jinja2Templates(directory="/")
 
 app = FastAPI()
 app.add_middleware(
@@ -64,7 +64,7 @@ app.mount(
 )
 
 
-templates = Jinja2Templates(directory="./docker/templates")
+templates = Jinja2Templates(directory="/")
 
 
 @app.get("/")
@@ -86,7 +86,7 @@ async def root():
 
 @app.get("/sucess", response_class=HTMLResponse)
 async def success_demo(request: Request):
-    return FileResponse("./docker/templates/sucess.html")
+    return FileResponse("./docker/templates/success_trial.html")
 
 
 @app.post("/data", response_class=HTMLResponse)
@@ -111,7 +111,7 @@ async def data(
     print("optimal date: " + str(opt_date))
 
     return TEMPLATES.TemplateResponse(
-        name="./docker/templates/success.html",
+        name="/success.html",
         context={
             "request": request,
             "savings": savings,
