@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-TEMPLATES = Jinja2Templates(directory=str("templates"))
+TEMPLATES = Jinja2Templates(directory=str("./docker/templates"))
 
 app = FastAPI()
 app.add_middleware(
@@ -64,7 +64,7 @@ app.mount(
 )
 
 
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="./docker/templates")
 
 
 @app.get("/")
@@ -104,7 +104,6 @@ async def data(
     _res = await calculate(date, float(amount), email)
     savings = _res[0]
     opt_date = _res[1]
-    print(percent)
 
     savings = round(savings, 3)
 
@@ -117,7 +116,6 @@ async def data(
             "request": request,
             "savings": savings,
             "opt_date": opt_date,
-            "percent": percent,
         },
     )
 
