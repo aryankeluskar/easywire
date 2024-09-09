@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request, Form
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+import pandas as pd
 
 from fastapi.templating import Jinja2Templates
 from math import floor
@@ -29,12 +30,20 @@ app.add_middleware(
 )
 
 templates_dir = os.path.join(os.path.dirname(__file__), "templates", "homepage_files")
+print(templates_dir)
 app.mount(
     "/homepage_files",
     StaticFiles(
         directory=templates_dir,
     ),
     name="homepage_files",
+)
+app.mount(
+    "/templates",
+    StaticFiles(
+        directory=os.path.join(os.path.dirname(__file__), "templates"),
+    ),
+    name="templates",
 )
 app.mount(
     "/css",
@@ -46,7 +55,7 @@ app.mount(
 app.mount(
     "/data",
     StaticFiles(
-        directory=templates_dir,
+        directory=os.path.join(os.path.dirname(__file__), "data",
     ),
     name="data",
 )
@@ -89,6 +98,8 @@ async def data(
     _res = await calculate(date, float(amount), email)
     savings = _res[0]
     opt_date = _res[1]
+    percent = _res[2]
+    print(percent)
 
     savings = round(savings, 3)
 
@@ -97,7 +108,7 @@ async def data(
 
     return TEMPLATES.TemplateResponse(
         name="success.html",
-        context={"request": request, "savings": savings, "opt_date": opt_date},
+        context={"request": request, "savings": savings, "opt_date": opt_date, "percent": percent},
     )
 
     # return ("../success.html?savings=" + str(savings) + "&opt_date=" + str(opt_date))
@@ -113,12 +124,14 @@ async def calculate(date: str, amount: float, email: str):
     print("date: " + date)
     print("today: " + today)
 
-    with open("data/serialized_model.json", "r") as fin:
-        m = model_from_json(fin.read())
+    # with open("data/serialized_model.json", "r") as fin:
+    #     m = model_from_json(fin.read())
 
-    future = m.make_future_dataframe(periods=1826)
-    future["cap"] = 8.5
-    fcst = m.predict(future)
+    # future = m.make_future_dataframe(periods=1826)
+    # future["cap"] = 8.5
+    # fcst = m.predict(future)
+
+    fcst = pd.read_csv("data/fcst.csv")
 
     fy2024 = fcst[(fcst["ds"] > today) & (fcst["ds"] < date)][["ds", "yhat"]]
 
@@ -143,7 +156,8 @@ async def calculate(date: str, amount: float, email: str):
     # print(((high_p-low_p)/low_p)*100)
     savings = amt * high_p - amt * low_p
     final_date = str(low["ds"].values)
-    return (savings, final_date)
+
+    return (savings, final_date, percent)
 
 
 @app.get("/graph/usd_inr_all")
