@@ -55,10 +55,14 @@ app.mount(
 app.mount(
     "/data",
     StaticFiles(
-        directory=os.path.join(os.path.dirname(__file__), "data",
+        directory=os.path.join(
+            os.path.dirname(__file__),
+            "data",
+        )
     ),
     name="data",
 )
+
 
 templates = Jinja2Templates(directory="templates")
 
@@ -79,9 +83,11 @@ async def root():
     print(os.listdir())
     return FileResponse("templates/home.html")
 
+
 @app.get("/sucess", response_class=HTMLResponse)
 async def success_demo(request: Request):
     return FileResponse("templates/sucess.html")
+
 
 @app.post("/data", response_class=HTMLResponse)
 async def data(
@@ -108,7 +114,12 @@ async def data(
 
     return TEMPLATES.TemplateResponse(
         name="success.html",
-        context={"request": request, "savings": savings, "opt_date": opt_date, "percent": percent},
+        context={
+            "request": request,
+            "savings": savings,
+            "opt_date": opt_date,
+            "percent": percent,
+        },
     )
 
     # return ("../success.html?savings=" + str(savings) + "&opt_date=" + str(opt_date))
@@ -157,7 +168,7 @@ async def calculate(date: str, amount: float, email: str):
     savings = amt * high_p - amt * low_p
     final_date = str(low["ds"].values)
 
-    return (savings, final_date, percent)
+    return (savings, final_date)
 
 
 @app.get("/graph/usd_inr_all")
