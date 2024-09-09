@@ -81,12 +81,12 @@ async def root():
     """
     # print list of files in templates directory
     print(os.listdir())
-    return FileResponse("templates/home.html")
+    return FileResponse("./docker/templates/home.html")
 
 
 @app.get("/sucess", response_class=HTMLResponse)
 async def success_demo(request: Request):
-    return FileResponse("templates/sucess.html")
+    return FileResponse("./docker/templates/sucess.html")
 
 
 @app.post("/data", response_class=HTMLResponse)
@@ -113,7 +113,7 @@ async def data(
     print("optimal date: " + str(opt_date))
 
     return TEMPLATES.TemplateResponse(
-        name="success.html",
+        name="./docker/templates/success.html",
         context={
             "request": request,
             "savings": savings,
@@ -142,7 +142,7 @@ async def calculate(date: str, amount: float, email: str):
     # future["cap"] = 8.5
     # fcst = m.predict(future)
 
-    fcst = pd.read_csv("data/fcst.csv")
+    fcst = pd.read_csv("./docker/data/fcst.csv")
 
     fy2024 = fcst[(fcst["ds"] > today) & (fcst["ds"] < date)][["ds", "yhat"]]
 
@@ -173,7 +173,7 @@ async def calculate(date: str, amount: float, email: str):
 
 @app.get("/graph/usd_inr_all")
 async def graph_usd_inr_all():
-    return FileResponse("data/usd_inr_all.png")
+    return FileResponse("./docker/data/usd_inr_all.png")
 
     # import pandas as pd
     # from prophet import Prophet
