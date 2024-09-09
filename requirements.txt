@@ -4,3 +4,4 @@ python-dotenv==1.0.1
 uvicorn==0.30.6
 numpy==1.26.4
 jinja2
+python-multipart
