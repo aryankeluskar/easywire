@@ -132,14 +132,14 @@ async def calculate(date: str, amount: float, email: str):
     print("date: " + date)
     print("today: " + today)
 
-    # with open("data/serialized_model.json", "r") as fin:
-    #     m = model_from_json(fin.read())
+    with open("data/serialized_model.json", "r") as fin:
+        m = model_from_json(fin.read())
 
-    # future = m.make_future_dataframe(periods=1826)
-    # future["cap"] = 8.5
-    # fcst = m.predict(future)
+    future = m.make_future_dataframe(periods=1826)
+    future["cap"] = 8.5
+    fcst = m.predict(future)
 
-    fcst = pd.read_csv("./docker/data/fcst.csv")
+    # fcst = pd.read_csv("./docker/data/fcst.csv")
 
     fy2024 = fcst[(fcst["ds"] > today) & (fcst["ds"] < date)][["ds", "yhat"]]
 
