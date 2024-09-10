@@ -13,4 +13,6 @@ COPY ./templates /docker/templates
 COPY ./data /docker/data
 COPY ./templates /
 
-CMD ["fastapi", "run", "/docker/api.py", "--host", "0.0.0.0", "--port", "80"]
+EXPOSE 8000
+
+CMD ["fastapi", "run", "/docker/api.py", "--host", "0.0.0.0", "--port", "8000"]
