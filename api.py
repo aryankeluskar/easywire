@@ -105,6 +105,14 @@ async def data(
     savings = _res[0]
     opt_date = _res[1]
 
+    print("opt_date: " + opt_date)
+    opt_date = opt_date[2:12]
+    print("opt_date: " + opt_date)
+
+    # opt_date is now '2024-09-20T00:00:00.000000000' convert to words like '20th September 2024'
+    opt_date = datetime.datetime.strptime(opt_date, "%Y-%m-%d")
+    opt_date = opt_date.strftime("%d %B %Y")
+
     savings = round(savings, 3)
 
     print("savings: " + str(savings))
@@ -132,7 +140,7 @@ async def calculate(date: str, amount: float, email: str):
     print("date: " + date)
     print("today: " + today)
 
-    with open("data/serialized_model.json", "r") as fin:
+    with open("./docker/data/serialized_model.json", "r") as fin:
         m = model_from_json(fin.read())
 
     future = m.make_future_dataframe(periods=1826)
@@ -165,8 +173,26 @@ async def calculate(date: str, amount: float, email: str):
     savings = amt * high_p - amt * low_p
     final_date = str(low["ds"].values)
 
+    # create a graph of USD to INR only from today to date. make sure the scaling is small so the changes are visible
+    import matplotlib.pyplot as plt
+    
+    # remove year from date
+    fy2024["ds"] = fy2024["ds"].apply(lambda x: str(x)[5:10])
+    
+    plt.plot(fy2024["ds"], fy2024["yhat"], color="blue")
+    
+    # remove x-axis intervals
+    plt.xticks([])
+    
+    plt.xlabel("Date")
+    plt.ylabel("USD to INR")
+    plt.savefig("./docker/data/prediction.png")
+
     return (savings, final_date)
 
+@app.get("/graph/prediction")
+async def graph_prediction():
+    return FileResponse("./docker/data/prediction.png")
 
 @app.get("/graph/usd_inr_all")
 async def graph_usd_inr_all():
