@@ -9,8 +9,6 @@ import pandas as pd
 from fastapi.templating import Jinja2Templates
 from math import floor
 
-from prophet.serialize import model_from_json
-
 import datetime
 import os
 
@@ -86,7 +84,8 @@ async def root():
 
 @app.get("/sucess", response_class=HTMLResponse)
 async def success_demo(request: Request):
-    return FileResponse("./docker/templates/success_trial.html")
+    # return FileResponse("./docker/templates/success_trial.html")
+    return {"success": True}
 
 
 @app.post("/success", response_class=HTMLResponse)
@@ -101,7 +100,7 @@ async def data(
     print("date: " + date)
     print("email: " + email)
 
-    _res = await calculate(date, float(amount), email)
+    _res = [0, "2024-09-31T00:00:00.000000000"]
     savings = _res[0]
     opt_date = _res[1]
 
@@ -128,67 +127,6 @@ async def data(
     )
 
     # return ("../success.html?savings=" + str(savings) + "&opt_date=" + str(opt_date))
-
-
-async def calculate(date: str, amount: float, email: str):
-    r"""
-    Function to do the main stuff. Uses prophet to predict the exchange rate. Sentiment analysis is on a separate dashboard for now.
-    """
-
-    today = str(datetime.datetime.now())[:11]
-
-    print("date: " + date)
-    print("today: " + today)
-
-    with open("./docker/data/serialized_model.json", "r") as fin:
-        m = model_from_json(fin.read())
-
-    future = m.make_future_dataframe(periods=1826)
-    future["cap"] = 8.5
-    fcst = m.predict(future)
-
-    # fcst = pd.read_csv("./docker/data/fcst.csv")
-
-    fy2024 = fcst[(fcst["ds"] > today) & (fcst["ds"] < date)][["ds", "yhat"]]
-
-    # get lowest in fy2024 along with date
-    low = fy2024[fy2024["yhat"] == fy2024["yhat"].min()]
-
-    # get max in fy2024 along with date
-    high = fy2024[fy2024["yhat"] == fy2024["yhat"].max()]
-
-    print(low)
-    print(high)
-
-    low_p = floor(list(low["yhat"])[0])
-    high_p = list(high["yhat"])[0]
-
-    amt = amount
-    print("Current Amount (USD): ", amt)
-
-    # print(f"Amount on {str(low['ds'].values[0])[:10]}: INR", amt*low_p)
-    # print("Saving: INR", (amt*high_p - amt*low_p))
-
-    # print(((high_p-low_p)/low_p)*100)
-    savings = amt * high_p - amt * low_p
-    final_date = str(low["ds"].values)
-
-    # create a graph of USD to INR only from today to date. make sure the scaling is small so the changes are visible
-    import matplotlib.pyplot as plt
-    
-    # remove year from date
-    fy2024["ds"] = fy2024["ds"].apply(lambda x: str(x)[5:10])
-    
-    plt.plot(fy2024["ds"], fy2024["yhat"], color="blue")
-    
-    # remove x-axis intervals
-    plt.xticks([])
-    
-    plt.xlabel("Date")
-    plt.ylabel("USD to INR")
-    plt.savefig("./docker/data/prediction.png")
-
-    return (savings, final_date)
 
 @app.get("/graph/prediction")
 async def graph_prediction():
