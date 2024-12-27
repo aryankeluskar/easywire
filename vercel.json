@@ -8,8 +8,7 @@
     "routes": [
         {
             "src": "/(.*)",
-            "dest": "api.py",
-            "maxDuration": 60
+            "dest": "api.py"
         }
     ]
 }
