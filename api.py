@@ -1,11 +1,13 @@
 import json
 from typing import Annotated
-from fastapi import FastAPI, File, UploadFile, Form
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, File, UploadFile, Form, Request
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from dotenv import load_dotenv
 import os
+import requests
 
 load_dotenv()
 
@@ -18,29 +20,25 @@ app.add_middleware(
     allow_credentials=True,
 )
 
-templates_dir = os.path.join(os.path.dirname(__file__), "templates", "homepage_files")
+templates_dir = os.path.join(os.path.dirname(__file__), "templates")
+
+app.mount(
+    "/templates",
+    StaticFiles(
+        directory=templates_dir,
+    ),
+    name="templates",
+)
+
 app.mount(
     "/homepage_files",
     StaticFiles(
-        directory=templates_dir,
+        directory=templates_dir+"/homepage_files",
     ),
     name="homepage_files",
 )
-app.mount(
-    "/css",
-    StaticFiles(
-        directory=templates_dir,
-    ),
-    name="css",
-)
-app.mount(
-    "/data",
-    StaticFiles(
-        directory=templates_dir,
-    ),
-    name="data",
-)
 
+templates = Jinja2Templates(directory="templates")
 
 @app.get("/")
 async def root():
@@ -54,9 +52,10 @@ async def root():
     Returns:
         FileResponse: A FileResponse object representing the "index.html" file.
     """
-    # print list of files in templates directory
-    print(os.listdir())
-    return FileResponse("templates/home.html")
+    
+    print(f"Serving template from: {os.path.join(templates_dir, 'home.html')}")
+
+    return FileResponse(os.path.join(templates_dir, 'home.html'))
 
 
 @app.post("/data")
@@ -69,12 +68,39 @@ async def data(
     print("amount: " + amount)
     print("date: " + date)
     print("email: " + email)
-    return {"success": True}
+    
+    # Redirect to success page with USD to INR as default currencies
+    return RedirectResponse(url=f"/success?from_curr=USD&to_curr=INR", status_code=303)
 
-@app.get("/graph/usd_inr_all")
-async def graph_usd_inr_all():
-    return FileResponse("data/usd_inr_all.png")
+# @app.get("/graph/usd_inr_all")
+# async def graph_usd_inr_all():
+#     return FileResponse("data/usd_inr_all.png")
 
-@app.get("/favicon.ico")
-async def favicon():
-    return FileResponse("favicon.ico")
+# @app.get("/favicon.ico")
+# async def favicon():
+#     return FileResponse("favicon.ico")
+
+@app.get("/success")
+async def success(request: Request, from_curr: str, to_curr: str):
+    """
+    Endpoint that fetches forex data and displays it using a template
+    """
+    api_url = f"https://ewb.aryankeluskar.com/generate_data"
+    params = {
+        "from_currency": from_curr,
+        "to_currency": to_curr,
+        "password": os.getenv('API_PASSWORD')
+    }
+    
+    response = requests.get(api_url, params=params)
+    forex_data = response.json()
+    
+    return templates.TemplateResponse(
+        "success.html",
+        { 
+            "from_curr": from_curr,
+            "to_curr": to_curr,
+            "request": request,
+            "forex_data": forex_data
+        }
+    )
