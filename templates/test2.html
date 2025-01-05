@@ -64,7 +64,6 @@
                 0 1px 2px 0 rgba(255, 255, 255, 0.4);
         }
 
-        /* Update the form container shadow for better depth */
         .form-container {
             box-shadow: 
                 0 4px 6px -1px rgba(0, 0, 0, 0.1),
@@ -84,7 +83,6 @@
             transform: translateY(-1px);
         }
 
-        /* Hover animations for buttons and links */
         .nav-link {
             position: relative;
             transition: all 0.3s ease;
@@ -105,7 +103,6 @@
             width: 100%;
         }
 
-        /* Form container animation */
         .form-container {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
@@ -115,7 +112,6 @@
             box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.1);
         }
 
-        /* Submit button animation */
         .submit-btn {
             transition: all 0.3s ease;
             background: linear-gradient(to right, #1a1a1a, #2d2d2d);
@@ -126,13 +122,12 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        /* Input hover effect */
         .input-style:hover {
             transform: translateY(-1px);
             box-shadow: 0 2px 8px rgba(99, 102, 241, 0.05);
         }
 
-        /* Add these dark mode styles */
+        /* Dark mode styles */
         :root {
             --dark-bg-gradient: linear-gradient(135deg, #1a1f35 0%, #242b45 100%);
             --dark-form-bg: rgba(30, 34, 45, 0.7);
@@ -163,24 +158,16 @@
             opacity: 0.9;
         }
 
-        /* Dark mode navbar */
         body.dark .glass-effect {
             background: rgba(30, 34, 45, 0.7);
             border-color: rgba(255, 255, 255, 0.05);
         }
 
-        /* Dark mode text */
-        body.dark .text-gray-900 {
-            color: var(--dark-text);
-        }
-
+        body.dark .text-gray-900 { color: var(--dark-text); }
         body.dark .text-gray-600,
         body.dark .text-gray-500,
-        body.dark .text-gray-700 {
-            color: var(--dark-text-secondary);
-        }
+        body.dark .text-gray-700 { color: var(--dark-text-secondary); }
 
-        /* Dark mode form */
         body.dark .form-container {
             background: var(--dark-form-bg);
             border-color: rgba(255, 255, 255, 0.05);
@@ -189,7 +176,6 @@
                 0 0 0 1px rgba(255, 255, 255, 0.05);
         }
 
-        /* Dark mode inputs */
         body.dark .input-style {
             background: rgba(30, 34, 45, 0.9);
             border-color: rgba(255, 255, 255, 0.1);
@@ -200,22 +186,14 @@
             color: rgba(255, 255, 255, 0.5);
         }
 
-        body.dark .input-style:focus {
-            border-color: rgba(99, 102, 241, 0.5);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        /* Dark mode icons */
         body.dark .text-gray-400 {
             color: rgba(255, 255, 255, 0.5);
         }
 
-        /* Dark mode button */
         body.dark .submit-btn {
             background: linear-gradient(to right, #4f46e5, #6366f1);
         }
 
-        /* Dark mode toggle button */
         .theme-toggle {
             transition: all 0.3s ease;
         }
@@ -224,7 +202,7 @@
             color: var(--dark-text);
         }
 
-        /* Smooth transition for dark mode */
+        /* Smooth transitions */
         body,
         .glass-effect,
         .form-container,
@@ -277,23 +255,20 @@
                         <span class="absolute left-3 top-3 text-gray-400">💰</span>
                         <input type="text" 
                                placeholder="Enter your transaction amount..." 
-                               class="input-style w-full pl-10 pr-4 py-3 rounded-lg focus:outline-none"
-                        >
+                               class="input-style w-full pl-10 pr-4 py-3 rounded-lg focus:outline-none">
                     </div>
                     
                     <div class="relative">
                         <span class="absolute left-3 top-3 text-gray-400">📅</span>
                         <input type="date" 
-                               class="input-style w-full pl-10 pr-4 py-3 rounded-lg focus:outline-none"
-                        >
+                               class="input-style w-full pl-10 pr-4 py-3 rounded-lg focus:outline-none">
                     </div>
                     
                     <div class="relative">
                         <span class="absolute left-3 top-3 text-gray-400">📧</span>
                         <input type="email" 
                                placeholder="Enter your email..." 
-                               class="input-style w-full pl-10 pr-4 py-3 rounded-lg focus:outline-none"
-                        >
+                               class="input-style w-full pl-10 pr-4 py-3 rounded-lg focus:outline-none">
                     </div>
 
                     <button type="submit" 
@@ -311,14 +286,12 @@
         const darkModeButton = document.querySelector('.theme-toggle');
         const body = document.body;
         
-        // Check for saved dark mode preference
         if (localStorage.getItem('darkMode') === 'true') {
             body.classList.add('dark');
         }
 
         darkModeButton.addEventListener('click', () => {
             body.classList.toggle('dark');
-            // Save preference
             localStorage.setItem('darkMode', body.classList.contains('dark'));
         });
     </script>

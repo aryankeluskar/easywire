@@ -50,7 +50,7 @@ async def root():
     root URL ("/").
     ---
     Returns:
-        FileResponse: A FileResponse object representing the "index.html" file.
+        FileResponse: A FileResponse object representing the "home.html" file.
     """
     
     print(f"Serving template from: {os.path.join(templates_dir, 'home.html')}")
