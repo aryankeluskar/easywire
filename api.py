@@ -88,25 +88,31 @@ async def success(request: Request, from_curr: str, to_curr: str):
     """
     Endpoint that fetches forex data and displays it using a template
     """
-    api_url = f"https://ewb.aryankeluskar.com/generate_data"
-    params = {
-        "from_currency": from_curr,
-        "to_currency": to_curr,
-        "password": os.getenv('API_PASSWORD')
-    }
-    
-    response = requests.get(api_url, params=params)
-    forex_data = response.json()
-    
-    print("received the following data from backend")
-    print(forex_data)
-    
-    return templates.TemplateResponse(
-        "success.html",
-        { 
-            "from_curr": from_curr,
-            "to_curr": to_curr,
-            "request": request,
-            "forex_data": forex_data
+    try:
+        api_url = f"https://ewb.aryankeluskar.com/generate_data"
+        params = {
+            "from_currency": from_curr,
+            "to_currency": to_curr,
+            "password": os.getenv('API_PASSWORD')
         }
-    )
+        
+        response = requests.get(api_url, params=params)
+        forex_data = response.json()
+        
+        print("received the following data from backend")
+        print(forex_data)
+        
+        return templates.TemplateResponse(
+            "success.html",
+            { 
+                "from_curr": from_curr,
+                "to_curr": to_curr,
+                "request": request,
+                "forex_data": forex_data
+            }
+        )
+
+    except Exception as e:
+        print(f"Error: {e}")
+        # go back to home page
+        return RedirectResponse(url="/", status_code=303)
