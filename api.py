@@ -38,7 +38,7 @@ app.mount(
     name="homepage_files",
 )
 
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=templates_dir)
 
 @app.get("/")
 async def root():
