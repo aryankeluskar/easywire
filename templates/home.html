@@ -20,6 +20,68 @@
       document.querySelector('html').classList.add('dark');
     }
   </script>
+  <script
+    async
+    crossorigin="anonymous"
+    data-clerk-publishable-key="pk_live_Y2xlcmsuZWFzeXdpcmUuYXJ5YW5rZWx1c2thci5jb20k"
+    src="https://clerk.easywire.aryankeluskar.com/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
+    type="text/javascript">
+  </script>
+  <script>
+    async function initClerk() {
+      try {
+        if (!window.Clerk) {
+          console.error('Clerk not loaded yet');
+          return;
+        }
+        
+        await window.Clerk.load();
+
+        // Add event listeners for auth state changes
+        window.Clerk.addListener(({ user }) => {
+          const signInButton = document.getElementById('sign-in-button');
+          if (signInButton) {
+            if (user) {
+              signInButton.textContent = user.firstName || 'Account';
+              signInButton.onclick = () => window.Clerk.openUserProfile();
+            } else {
+              signInButton.textContent = 'Sign In';
+              signInButton.onclick = () => window.Clerk.openSignIn();
+            }
+          }
+        });
+
+      } catch (err) {
+        console.error('Error initializing Clerk:', err);
+      }
+    }
+
+    // Wait for Clerk to be available
+    function waitForClerk() {
+      if (window.Clerk) {
+        initClerk();
+      } else {
+        setTimeout(waitForClerk, 100);
+      }
+    }
+
+    // Start waiting for Clerk when the page loads
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', waitForClerk);
+    } else {
+      waitForClerk();
+    }
+  </script>
+  <style>
+    /* Remove focus outline from Clerk components */
+    .cl-component * {
+      outline: none !important;
+    }
+    .cl-component *:focus {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+  </style>
 
 <body class="cj90m c7e3b cisrt c7wkd c2gcs ce7fn clmvh">
 
@@ -88,6 +150,9 @@
                   <a class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5"
                     href="mailto:aryankeluskar6@gmail.com">Contact</a>
                 </li>
+                <li>
+                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-in-button">Sign In</button>
+                </li>
               </ul>
             </nav>
 
@@ -123,12 +188,12 @@
                 <!-- TODO: add logo -->
 
                 <h1 class="c0cnt ce627 cwr74 cfatl crlpf cbwmu c2gcs cr5d0 cvxf3 ch47f casec">easywire</h1>
-                <p class="cauea cgrfs cs94t">
-                  <b>Never lose to currency fluctuations ever again.</b>
-                  Uses technical and sentiment analysis to save you from
-                  over-paying for global transactions.
-                  You simply enter an amount, set a deadline for transfer, and get an email notification whenever the
-                  exchange rate is the most optimal. <br> (Work In Progress)
+                <p class="cauea cgrfs cs94t" style="max-width: 600px; margin: 0 auto; text-align: justify; text-align-last: center; line-height: 1.5;">
+                  <b>Never lose to currency fluctuations ever again.</b> <br>
+                  Uses technical and sentiment analysis to save you from over-paying for global
+                  transactions. You simply enter an amount, set a deadline for transfer, and get
+                  an email notification whenever the exchange rate is the most optimal. <b>Try it
+                  out today!</b>
                 </p>
 
               </div>
@@ -209,10 +274,7 @@
                                   d="M15 36c-8.55 0-15-3-15-7v-6a1 1 0 0 1 2 0c0 2.37 5.34 5 13 5s13-2.63 13-5a1 1 0 0 1 2 0v6c0 4-6.45 7-15 7zM2 26.6V29c0 2.37 5.34 5 13 5s13-2.63 13-5v-2.4c-2.55 2.07-7.31 3.4-13 3.4S4.55 28.67 2 26.6z" />
                                 <path style="fill:none;stroke:rgb(108, 114, 127);stroke-width:1px;padding-left: -100px;"
                                   class="cls-1"
-                                  d="M15 42c-8.55 0-15-3-15-7v-6a1 1 0 0 1 2 0c0 2.37 5.34 5 13 5s13-2.63 13-5a1 1 0 0 1 2 0v6c0 4-6.45 7-15 7zM2 32.6V35c0 2.37 5.34 5 13 5s13-2.63 13-5v-2.4c-2.55 2.07-7.31 3.4-13 3.4S4.55 34.67 2 32.6z" />
-                                <path style="fill:none;stroke:rgb(108, 114, 127);stroke-width:1px;padding-left: -100px;"
-                                  class="cls-1"
-                                  d="M15 48c-8.55 0-15-3-15-7v-6a1 1 0 0 1 2 0c0 2.37 5.34 5 13 5s13-2.63 13-5a1 1 0 0 1 2 0v6c0 4-6.45 7-15 7zM2 38.6V41c0 2.37 5.34 5 13 5s13-2.63 13-5v-2.4c-2.55 2.07-7.31 3.4-13 3.4S4.55 40.67 2 38.6zM20 16h2v2h-2zM8 16h2v2H8zM16 20h-2v-4h-1v-2h2a1 1 0 0 1 1 1zM38 6h2v2h-2zM26 6h2v2h-2zM34 10h-2V6h-1V4h2a1 1 0 0 1 1 1z" />
+                                  d="M15 42c-8.55 0-15-3-15-7v-6a1 1 0 0 1 2 0c0 2.37 5.34 5 13 5s13-2.63 13-5a1 1 0 0 1 2 0v6c0 4-6.45 7-15 7zM2 32.6V35c0 2.37 5.34 5 13 5s13-2.63 13-5v-2.4c-2.55 2.07-7.31 3.4-13 3.4S4.55 34.67 2 32.6zM20 16h2v2h-2zM8 16h2v2H8zM16 20h-2v-4h-1v-2h2a1 1 0 0 1 1 1zM38 6h2v2h-2zM26 6h2v2h-2zM34 10h-2V6h-1V4h2a1 1 0 0 1 1 1z" />
                                 <path style="fill:none;stroke:rgb(108, 114, 127);stroke-width:1px;padding-left: -100px;"
                                   class="cls-1"
                                   d="M33 14a32.94 32.94 0 0 1-4.13-.26l.26-2A30.58 30.58 0 0 0 33 12c7.66 0 13-2.63 13-5s-5.34-5-13-5-13 2.63-13 5a2.17 2.17 0 0 0 .57 1.37L19 9.64A4.08 4.08 0 0 1 18 7c0-4 6.45-7 15-7s15 3 15 7-6.45 7-15 7zM33 26c-.7 0-1.39 0-2.06-.06l.12-2c.63 0 1.28.06 1.94.06 7.66 0 13-2.63 13-5v-2.4c-2.55 2.07-7.31 3.4-13 3.4-.7 0-1.39 0-2.06-.06l.12-2c.63 0 1.28.06 1.94.06 7.66 0 13-2.63 13-5a1 1 0 0 1 2 0v6c0 4-6.45 7-15 7zM33 38c-.7 0-1.39 0-2.06-.06l.12-2c.63 0 1.28.06 1.94.06 7.66 0 13-2.63 13-5v-2.4c-2.55 2.07-7.31 3.4-13 3.4-.7 0-1.39 0-2.06-.06l.12-2c.63 0 1.28.06 1.94.06 7.66 0 13-2.63 13-5a1 1 0 0 1 2 0v6c0 4-6.45 7-15 7z" />

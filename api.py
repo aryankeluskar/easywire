@@ -1,15 +1,19 @@
 import json
 from typing import Annotated
-from fastapi import FastAPI, File, UploadFile, Form, Request
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi import FastAPI, File, UploadFile, Form, Request, HTTPException, Depends
+from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from dotenv import load_dotenv
 import os
 import requests
+from clerk_backend_api import Clerk
 
 load_dotenv()
+
+# Initialize Clerk
+clerk = Clerk(bearer_auth=os.getenv('CLERK_SECRET_KEY'))
 
 app = FastAPI()
 app.add_middleware(
@@ -19,6 +23,24 @@ app.add_middleware(
     allow_headers=["*"],
     allow_credentials=True,
 )
+
+# Clerk authentication middleware
+async def get_auth_user(request: Request):
+    session_token = request.cookies.get('__session')
+    if not session_token:
+        return None
+    try:
+        session = clerk.sessions.verify_session(session_token)
+        user = clerk.users.get(session.user_id)
+        return user
+    except:
+        return None
+
+# Protected route dependency
+async def require_auth(user = Depends(get_auth_user)):
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return user
 
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
 
@@ -60,6 +82,7 @@ async def root():
 
 @app.post("/data")
 async def data(
+    user = Depends(require_auth),
     amount: Annotated[str, Form()] = "",
     from_currency: Annotated[str, Form()] = "",
     to_currency: Annotated[str, Form()] = "",
@@ -84,7 +107,7 @@ async def data(
 #     return FileResponse("favicon.ico")
 
 @app.get("/success")
-async def success(request: Request, from_curr: str, to_curr: str):
+async def success(request: Request, from_curr: str, to_curr: str, user = Depends(require_auth)):
     """
     Endpoint that fetches forex data and displays it using a template
     """
@@ -116,3 +139,17 @@ async def success(request: Request, from_curr: str, to_curr: str):
         print(f"Error: {e}")
         # go back to home page
         return RedirectResponse(url="/", status_code=303)
+
+@app.get("/auth/user")
+async def get_user(user = Depends(get_auth_user)):
+    if not user:
+        return JSONResponse(status_code=401, content={"authenticated": False})
+    return JSONResponse(content={
+        "authenticated": True,
+        "user": {
+            "id": user.id,
+            "email": user.email_addresses[0].email_address,
+            "first_name": user.first_name,
+            "last_name": user.last_name
+        }
+    })
