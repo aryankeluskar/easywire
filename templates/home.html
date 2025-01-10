@@ -190,7 +190,7 @@
 
                   <div class="cacgm">
                     <div>
-                      <label class="cz99u" for="text">Amount</label>
+                      <label class="cz99u" for="amount">Amount</label>
                       <div class="ckwv3">
                         <div class="cis7l cwysf cud52 chwso c9v7h cr8aa cu4yo cezsk cyi7p">
                           <svg height="22px" width="22px" style="margin-left: -3px; margin-top: 2px;" version="1.1"
@@ -226,6 +226,53 @@
                           placeholder="Enter your transaction amount..." required="">
                       </div>
                     </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="cz99u" for="from_currency">From</label>
+                        <div class="ckwv3">
+                          <div class="cis7l cwysf cud52 chwso c9v7h cr8aa cu4yo cezsk cyi7p">
+                            <span>💱</span>
+                          </div>
+                          <select id="from_currency" name="from_currency" class="coyoz cc7et coe0p cyujy cjygq appearance-none bg-[right_1rem] bg-[length:1rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%236b7280%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat" required="">
+                            <option value="" disabled selected>From...</option>
+                            <option value="USD">USD - US Dollar</option>
+                            <option value="EUR">EUR - Euro</option>
+                            <option value="GBP">GBP - British Pound</option>
+                            <option value="JPY">JPY - Japanese Yen</option>
+                            <option value="AUD">AUD - Australian Dollar</option>
+                            <option value="CAD">CAD - Canadian Dollar</option>
+                            <option value="CHF">CHF - Swiss Franc</option>
+                            <option value="CNY">CNY - Chinese Yuan</option>
+                            <option value="INR">INR - Indian Rupee</option>
+                            <option value="SGD">SGD - Singapore Dollar</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label class="cz99u" for="to_currency">To</label>
+                        <div class="ckwv3">
+                          <div class="cis7l cwysf cud52 chwso c9v7h cr8aa cu4yo cezsk cyi7p">
+                            <span>💱</span>
+                          </div>
+                          <select id="to_currency" name="to_currency" class="coyoz cc7et coe0p cyujy cjygq appearance-none bg-[right_1rem] bg-[length:1rem] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%236b7280%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat" required="">
+                            <option value="" disabled selected>To...</option>
+                            <option value="USD">USD - US Dollar</option>
+                            <option value="EUR">EUR - Euro</option>
+                            <option value="GBP">GBP - British Pound</option>
+                            <option value="JPY">JPY - Japanese Yen</option>
+                            <option value="AUD">AUD - Australian Dollar</option>
+                            <option value="CAD">CAD - Canadian Dollar</option>
+                            <option value="CHF">CHF - Swiss Franc</option>
+                            <option value="CNY">CNY - Chinese Yuan</option>
+                            <option value="INR">INR - Indian Rupee</option>
+                            <option value="SGD">SGD - Singapore Dollar</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
                     <div>
                       <label class="cz99u" for="text">Deadline</label>
                       <div class="ckwv3">
@@ -290,14 +337,14 @@
             
             
 
-            <div class="cpthp czrhe cs10o">
+            <!-- <div class="cpthp czrhe cs10o">
               <div class="c9pd1">
       
                 <h3 class="c0cnt ce627 cwr74 cfatl crlpf cbwmu c2gcs cr5d0 cvxf3 ch47f casec">interesting trends between usd and inr</h3>
                 <img src="../graph/usd_inr_all" alt="usd_inr_all" class="c0cnt ce627 cwr74 cfatl crlpf cbwmu c2gcs cr5d0 cvxf3 ch47f casec">
 
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
       </section>
@@ -370,6 +417,33 @@
       document.getElementById('dropzone-text-right').innerText = 'for uploading!';
       document.getElementById('dropzone-text-bottom').innerText = file.name;
     }
+
+    // Currency selection handling
+    document.addEventListener('DOMContentLoaded', function() {
+      const fromCurrency = document.getElementById('from_currency');
+      const toCurrency = document.getElementById('to_currency');
+      const allOptions = Array.from(fromCurrency.options).slice(1); // Skip the placeholder option
+
+      fromCurrency.addEventListener('change', function() {
+        const selectedValue = fromCurrency.value;
+        
+        // Reset to currency dropdown
+        toCurrency.innerHTML = '<option value="" disabled selected>To...</option>';
+        
+        // Add all options except the selected one
+        allOptions.forEach(option => {
+          if (option.value !== selectedValue) {
+            toCurrency.add(option.cloneNode(true));
+          }
+        });
+
+        // Enable the to currency dropdown
+        toCurrency.disabled = false;
+      });
+
+      // Disable to currency initially until from currency is selected
+      toCurrency.disabled = true;
+    });
   </script>
 
 </body>

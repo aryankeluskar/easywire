@@ -45,7 +45,7 @@ async def root():
     r"""
     ### Root Endpoint
     A function that serves the root endpoint of the API. It returns a FileResponse object that
-    represents the "index.html" file located in the "templates" directory. This function is
+    represents the "home.html" file located in the "templates" directory. This function is
     decorated with the `@app.get("/")` decorator, which means it will handle GET requests to the
     root URL ("/").
     ---
@@ -61,16 +61,19 @@ async def root():
 @app.post("/data")
 async def data(
     amount: Annotated[str, Form()] = "",
+    from_currency: Annotated[str, Form()] = "",
+    to_currency: Annotated[str, Form()] = "",
     date: Annotated[str, Form()] = "",
     email: Annotated[str, Form()] = "",
 ):
-    # print("data")
     print("amount: " + amount)
+    print("from_currency: " + from_currency)
+    print("to_currency: " + to_currency)
     print("date: " + date)
     print("email: " + email)
     
-    # Redirect to success page with USD to INR as default currencies
-    return RedirectResponse(url=f"/success?from_curr=USD&to_curr=INR", status_code=303)
+    # Redirect to success page with the selected currencies
+    return RedirectResponse(url=f"/success?from_curr={from_currency}&to_curr={to_currency}", status_code=303)
 
 # @app.get("/graph/usd_inr_all")
 # async def graph_usd_inr_all():
@@ -94,6 +97,9 @@ async def success(request: Request, from_curr: str, to_curr: str):
     
     response = requests.get(api_url, params=params)
     forex_data = response.json()
+    
+    print("received the following data from backend")
+    print(forex_data)
     
     return templates.TemplateResponse(
         "success.html",
