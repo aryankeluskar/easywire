@@ -39,17 +39,18 @@
 
         // Add event listeners for auth state changes
         window.Clerk.addListener(({ user }) => {
-          const signInButton = document.getElementById('sign-in-button');
           const signOutContainer = document.getElementById('sign-out-container');
-          if (signInButton) {
+          if (signOutContainer) {
             if (user) {
               signOutContainer.innerHTML = `
-                <li>
-                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="profile-button">${user.firstName || 'Account'}</button>
-                </li>
-                <li>
-                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-out-button">Sign Out</button>
-                </li>
+                <div class="auth-container">
+                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="profile-button">
+                    ${user.firstName || 'Account'}
+                  </button>
+                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5 sign-out-button" id="sign-out-button">
+                    Sign Out
+                  </button>
+                </div>
               `;
               document.getElementById('profile-button').onclick = () => window.Clerk.openUserProfile();
               document.getElementById('sign-out-button').onclick = async () => {
@@ -58,9 +59,7 @@
               };
             } else {
               signOutContainer.innerHTML = `
-                <li>
-                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-in-button">Sign In</button>
-                </li>
+                <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-in-button">Sign In</button>
               `;
               document.getElementById('sign-in-button').onclick = () => window.Clerk.openSignIn();
             }
@@ -96,6 +95,38 @@
     .cl-component *:focus {
       outline: none !important;
       box-shadow: none !important;
+    }
+
+    /* Auth button styles */
+    .auth-container {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .sign-out-button {
+      position: absolute;
+      right: 0;
+      transform: translateX(calc(100% + 0.5rem));
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease-in-out;
+      white-space: nowrap;
+    }
+
+    .auth-container:hover .sign-out-button {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Ensure navbar stays centered */
+    .nav-list {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      transition: all 0.2s ease-in-out;
     }
   </style>
 
@@ -150,14 +181,10 @@
 
             <!-- Navigation links -->
             <nav class="c3927 cezsk">
-              <ul class="chwso cxpc2 cmj1h cc7et cezsk">
+              <ul class="nav-list chwso cxpc2 cmj1h cc7et cezsk">
                 <li>
                   <a class="cpvyo cv7b2 cj90m c2gcs ccjiw cjnro c02c5" href="https://git.new/easywire">GitHub</a>
                 </li>
-                <!-- <li>
-                  <a class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5"
-                    href="https://sage.buildspace.so/chat/what-is-aryan-keluskar-working-on-and-what-is-easywire">Buildspace</a>
-                </li> -->
                 <li>
                   <a class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5"
                     href="https://www.perplexity.ai/search/what-is-aryan-keluskar-working-IXG6W3UOQT2qN3p8EBo_8Q">Perplexity</a>
@@ -166,11 +193,9 @@
                   <a class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5"
                     href="mailto:aryankeluskar6@gmail.com">Contact</a>
                 </li>
-                <div id="sign-out-container">
-                  <li>
-                    <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-in-button">Sign In</button>
-                  </li>
-                </div>
+                <li id="sign-out-container">
+                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-in-button">Sign In</button>
+                </li>
               </ul>
             </nav>
 
