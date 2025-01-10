@@ -40,6 +40,7 @@
         // Add event listeners for auth state changes
         window.Clerk.addListener(({ user }) => {
           const signOutContainer = document.getElementById('sign-out-container');
+          const emailInput = document.getElementById('email');
           if (signOutContainer) {
             if (user) {
               signOutContainer.innerHTML = `
@@ -52,6 +53,11 @@
                   </button>
                 </div>
               `;
+              // Pre-fill and disable email input if user is logged in
+              if (emailInput) {
+                emailInput.value = user.primaryEmailAddress.emailAddress;
+                emailInput.disabled = true;
+              }
               document.getElementById('profile-button').onclick = () => window.Clerk.openUserProfile();
               document.getElementById('sign-out-button').onclick = async () => {
                 await window.Clerk.signOut();
