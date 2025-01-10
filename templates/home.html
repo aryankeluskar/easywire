@@ -45,7 +45,7 @@
               signOutContainer.innerHTML = `
                 <div class="auth-container">
                   <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="profile-button">
-                    ${user.firstName || 'Account'}
+                    ${'Settings'}
                   </button>
                   <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-out-button">
                     Sign Out
@@ -63,7 +63,7 @@
               };
               // Show/hide elements based on authentication
               document.getElementById('user-greeting').style.display = 'block';
-              document.getElementById('user-greeting').querySelector('span').textContent = `Hi, ${user.firstName || 'User'}`;
+              document.getElementById('user-greeting').querySelector('span').textContent = `Hi, ${user.firstName || 'User'}!`;
               document.getElementById('alerts-link').style.display = 'block';
               document.getElementById('github-link').style.display = 'none';
               document.getElementById('perplexity-link').style.display = 'none';
