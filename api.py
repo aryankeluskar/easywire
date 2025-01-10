@@ -39,8 +39,8 @@ async def get_auth_user(request: Request):
 # Protected route dependency
 async def require_auth(user = Depends(get_auth_user)):
     if not user:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    return user
+        return {"authenticated": False, "message": "Please Sign In"}
+    return {"authenticated": True, "user": user}
 
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
 
@@ -82,7 +82,6 @@ async def root():
 
 @app.post("/data")
 async def data(
-    user = Depends(require_auth),
     amount: Annotated[str, Form()] = "",
     from_currency: Annotated[str, Form()] = "",
     to_currency: Annotated[str, Form()] = "",
@@ -107,7 +106,7 @@ async def data(
 #     return FileResponse("favicon.ico")
 
 @app.get("/success")
-async def success(request: Request, from_curr: str, to_curr: str, user = Depends(require_auth)):
+async def success(request: Request, from_curr: str, to_curr: str):
     """
     Endpoint that fetches forex data and displays it using a template
     """
@@ -141,9 +140,10 @@ async def success(request: Request, from_curr: str, to_curr: str, user = Depends
         return RedirectResponse(url="/", status_code=303)
 
 @app.get("/auth/user")
-async def get_user(user = Depends(get_auth_user)):
-    if not user:
-        return JSONResponse(status_code=401, content={"authenticated": False})
+async def get_user(auth = Depends(require_auth)):
+    if not auth["authenticated"]:
+        return JSONResponse(content={"authenticated": False, "message": auth["message"]})
+    user = auth["user"]
     return JSONResponse(content={
         "authenticated": True,
         "user": {
