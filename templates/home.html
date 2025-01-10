@@ -47,7 +47,7 @@
                   <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="profile-button">
                     ${user.firstName || 'Account'}
                   </button>
-                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5 sign-out-button" id="sign-out-button">
+                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-out-button">
                     Sign Out
                   </button>
                 </div>
@@ -99,34 +99,9 @@
 
     /* Auth button styles */
     .auth-container {
-      position: relative;
       display: inline-flex;
       align-items: center;
-    }
-
-    .sign-out-button {
-      position: absolute;
-      right: 0;
-      transform: translateX(calc(100% + 0.5rem));
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.2s ease-in-out;
-      white-space: nowrap;
-    }
-
-    .auth-container:hover .sign-out-button {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    /* Ensure navbar stays centered */
-    .nav-list {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 1.5rem;
-      transition: all 0.2s ease-in-out;
+      gap: 0.5rem;
     }
   </style>
 
