@@ -40,13 +40,29 @@
         // Add event listeners for auth state changes
         window.Clerk.addListener(({ user }) => {
           const signInButton = document.getElementById('sign-in-button');
+          const signOutContainer = document.getElementById('sign-out-container');
           if (signInButton) {
             if (user) {
-              signInButton.textContent = user.firstName || 'Account';
-              signInButton.onclick = () => window.Clerk.openUserProfile();
+              signOutContainer.innerHTML = `
+                <li>
+                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="profile-button">${user.firstName || 'Account'}</button>
+                </li>
+                <li>
+                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-out-button">Sign Out</button>
+                </li>
+              `;
+              document.getElementById('profile-button').onclick = () => window.Clerk.openUserProfile();
+              document.getElementById('sign-out-button').onclick = async () => {
+                await window.Clerk.signOut();
+                window.location.href = '/';
+              };
             } else {
-              signInButton.textContent = 'Sign In';
-              signInButton.onclick = () => window.Clerk.openSignIn();
+              signOutContainer.innerHTML = `
+                <li>
+                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-in-button">Sign In</button>
+                </li>
+              `;
+              document.getElementById('sign-in-button').onclick = () => window.Clerk.openSignIn();
             }
           }
         });
@@ -150,9 +166,11 @@
                   <a class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5"
                     href="mailto:aryankeluskar6@gmail.com">Contact</a>
                 </li>
-                <li>
-                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-in-button">Sign In</button>
-                </li>
+                <div id="sign-out-container">
+                  <li>
+                    <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-in-button">Sign In</button>
+                  </li>
+                </div>
               </ul>
             </nav>
 
