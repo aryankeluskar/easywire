@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 import os
 import requests
 from clerk_backend_api import Clerk
+from datetime import datetime
+import re
 
 load_dotenv()
 
@@ -62,6 +64,9 @@ app.mount(
 
 templates = Jinja2Templates(directory=templates_dir)
 
+# Valid currency codes (common ones)
+VALID_CURRENCIES = {'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'INR', 'NZD'}
+
 @app.get("/")
 async def root():
     r"""
@@ -82,17 +87,66 @@ async def root():
 
 @app.post("/data")
 async def data(
-    amount: Annotated[str, Form()] = "",
-    from_currency: Annotated[str, Form()] = "",
-    to_currency: Annotated[str, Form()] = "",
-    date: Annotated[str, Form()] = "",
-    email: Annotated[str, Form()] = "",
+    request: Request,
+    amount: Annotated[str, Form()],
+    from_currency: Annotated[str, Form()],
+    to_currency: Annotated[str, Form()],
+    date: Annotated[str, Form()],
+    email: Annotated[str, Form()],
 ):
-    print("amount: " + amount)
-    print("from_currency: " + from_currency)
-    print("to_currency: " + to_currency)
-    print("date: " + date)
-    print("email: " + email)
+    errors = []
+    
+    # Amount validation
+    try:
+        amount_float = float(amount)
+        if amount_float <= 0:
+            errors.append("Amount must be greater than 0")
+    except ValueError:
+        errors.append("Please enter a valid amount")
+
+    # Currency validation
+    from_currency = from_currency.upper()
+    to_currency = to_currency.upper()
+    if from_currency not in VALID_CURRENCIES:
+        errors.append(f"Invalid 'from' currency. Supported currencies: {', '.join(sorted(VALID_CURRENCIES))}")
+    if to_currency not in VALID_CURRENCIES:
+        errors.append(f"Invalid 'to' currency. Supported currencies: {', '.join(sorted(VALID_CURRENCIES))}")
+    if from_currency == to_currency:
+        errors.append("'From' and 'To' currencies must be different")
+
+    # Date validation
+    try:
+        parsed_date = datetime.strptime(date, '%Y-%m-%d')
+        if parsed_date < datetime.now():
+            errors.append("Date must be in the future")
+    except ValueError:
+        errors.append("Please enter a valid date")
+
+    # Email validation
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_pattern, email):
+        errors.append("Please enter a valid email address")
+
+    # If there are any errors, return them to the user
+    if errors:
+        return templates.TemplateResponse(
+            "home.html",
+            {
+                "request": request,
+                "errors": errors,
+                "form_data": {  # Return form data to repopulate fields
+                    "amount": amount,
+                    "from_currency": from_currency,
+                    "to_currency": to_currency,
+                    "date": date,
+                    "email": email
+                }
+            },
+            status_code=400
+        )
+    
+    # All validations passed, proceed with the request
+    print(f"Processing transaction: {amount} {from_currency} to {to_currency}")
     
     # Redirect to success page with the selected currencies
     return RedirectResponse(url=f"/success?from_curr={from_currency}&to_curr={to_currency}", status_code=303)
@@ -111,6 +165,19 @@ async def success(request: Request, from_curr: str, to_curr: str):
     Endpoint that fetches forex data and displays it using a template
     """
     try:
+        # Validate currency codes again as a security measure
+        from_curr = from_curr.upper()
+        to_curr = to_curr.upper()
+        if from_curr not in VALID_CURRENCIES or to_curr not in VALID_CURRENCIES:
+            return templates.TemplateResponse(
+                "error.html",
+                {
+                    "request": request,
+                    "error": "Invalid currency codes provided"
+                },
+                status_code=400
+            )
+
         api_url = f"https://ewb.aryankeluskar.com/generate_data"
         params = {
             "from_currency": from_curr,
@@ -118,26 +185,87 @@ async def success(request: Request, from_curr: str, to_curr: str):
             "password": os.getenv('API_PASSWORD')
         }
         
-        response = requests.get(api_url, params=params)
-        forex_data = response.json()
+        # Add timeout to prevent hanging
+        response = requests.get(api_url, params=params, timeout=10)
         
-        print("received the following data from backend")
-        print(forex_data)
+        # Check if request was successful
+        if response.status_code == 429:
+            return templates.TemplateResponse(
+                "error.html",
+                {
+                    "request": request,
+                    "error": "Too many requests. Please try again in a few minutes."
+                },
+                status_code=429
+            )
         
-        return templates.TemplateResponse(
-            "success.html",
-            { 
-                "from_curr": from_curr,
-                "to_curr": to_curr,
-                "request": request,
-                "forex_data": forex_data
-            }
-        )
+        response.raise_for_status()
+        
+        try:
+            forex_data = response.json()
+            if not forex_data:
+                raise ValueError("Empty response from forex service")
+                
+            # Add success message to the template
+            return templates.TemplateResponse(
+                "success.html",
+                { 
+                    "from_curr": from_curr,
+                    "to_curr": to_curr,
+                    "request": request,
+                    "forex_data": forex_data,
+                    "success_message": "Successfully fetched forex data!"
+                }
+            )
+        except (json.JSONDecodeError, ValueError) as e:
+            print(f"Data parsing error: {str(e)}")
+            return templates.TemplateResponse(
+                "error.html",
+                {
+                    "request": request,
+                    "error": "Unable to process forex data. Please try again later."
+                },
+                status_code=500
+            )
 
+    except requests.Timeout:
+        return templates.TemplateResponse(
+            "error.html",
+            {
+                "request": request,
+                "error": "The backend is taking too long to respond. Please try again or check your internet connection."
+            },
+            status_code=504
+        )
+    except requests.ConnectionError:
+        return templates.TemplateResponse(
+            "error.html",
+            {
+                "request": request,
+                "error": "Unable to connect to our backend. Please check your internet connection and try again."
+            },
+            status_code=503
+        )
+    except requests.RequestException as e:
+        print(f"API Error: {str(e)}")
+        return templates.TemplateResponse(
+            "error.html",
+            {
+                "request": request,
+                "error": "Unable to fetch forex data. Please try again later."
+            },
+            status_code=500
+        )
     except Exception as e:
-        print(f"Error: {e}")
-        # go back to home page
-        return RedirectResponse(url="/", status_code=303)
+        print(f"Unexpected error: {str(e)}")
+        return templates.TemplateResponse(
+            "error.html",
+            {
+                "request": request,
+                "error": "An unexpected error occurred. Please try again later."
+            },
+            status_code=500
+        )
 
 @app.get("/auth/user")
 async def get_user(auth = Depends(require_auth)):
