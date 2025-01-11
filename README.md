@@ -4,16 +4,12 @@
   </a>
 </p>
 
-<p align="center">WIP</p>
-
 <p align="center">
   <img style=" width: 350px" src="https://raw.githubusercontent.com/aryankeluskar/easywire/master/easywire-tw.jpeg" alt="Tweet for EasyWire">
 </p>
 
 
-## 📦 Features
 
-> coming soon
 
 ## 🚀 Quickstart
 
@@ -24,7 +20,7 @@ Use `git clone`
 ### 2. Install dependencies
 
 ```bash
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 ### 3. Create `.env` file
@@ -32,7 +28,9 @@ pip install requirements.txt
 Copy the `.env.example` file to `.env` and fill in the values.
 
 ```config
-#TODO
+API_PASSWORD=<contact easywire@aryankeluskar.com for the backend API key>
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=<obtain from clerk.dev>
+CLERK_SECRET_KEY=<obtain from clerk.dev>
 ```
 
 
@@ -40,10 +38,10 @@ Copy the `.env.example` file to `.env` and fill in the values.
 ### 4. Start the app
 
 ```bash
-python src/main.py
+python main.py
 ```
 
-This will start the app on [http://localhost:3000](http://localhost:3000).
+This will start the app on [http://localhost:8000](http://localhost:8000).
 
 
 ## 🌄 Inspiration
