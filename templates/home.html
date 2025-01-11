@@ -299,6 +299,17 @@
               <div class="cgc2y c81ef czrhe coe0p">
                 <form class="ckwv3" action="/data" method="post" enctype='multipart/form-data' id="transaction-form">
 
+                  <!-- Error Display Section -->
+                  {% if errors %}
+                  <div class="mb-4 p-4 rounded-lg bg-red-100 border border-red-400">
+                    <ul class="list-disc list-inside text-red-700">
+                      {% for error in errors %}
+                      <li>{{ error }}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                  {% endif %}
+
                   <!-- Border with dots in corners -->
                   <div
                     class="cq4r1 cfdqj ck5ws c5pov cehp5 chqy8 cym3j cxpxq cvvig c0cnt cba0k crgvw ci2tu c2z22 csmr0 cr2ij cpue7 c26dl cevtx cr5hf cxgoq cjkk2 c1qs0 ccjiw cr8aa clot7 cag0k"
@@ -402,7 +413,7 @@
                             <option value="CHF">CHF - Swiss Franc</option>
                             <option value="CNY">CNY - Chinese Yuan</option>
                             <option value="INR">INR - Indian Rupee</option>
-                            <option value="SGD">SGD - Singapore Dollar</option>
+                            <option value="NZD">NZD - New Zealand Dollar</option>
                           </select>
                         </div>
                       </div>
@@ -424,7 +435,7 @@
                             <option value="CHF">CHF - Swiss Franc</option>
                             <option value="CNY">CNY - Chinese Yuan</option>
                             <option value="INR">INR - Indian Rupee</option>
-                            <option value="SGD">SGD - Singapore Dollar</option>
+                            <option value="NZD">NZD - New Zealand Dollar</option>
                           </select>
                         </div>
                       </div>
