@@ -185,8 +185,13 @@ async def success(request: Request, from_curr: str, to_curr: str):
             "password": os.getenv('API_PASSWORD')
         }
         
-        # Add timeout to prevent hanging
-        response = requests.get(api_url, params=params, timeout=10)
+        print(f"Making request to {api_url} with params: {from_curr}, {to_curr}")
+        start_time = datetime.now()
+        
+        response = requests.get(api_url, params=params, timeout=30)
+        
+        request_time = (datetime.now() - start_time).total_seconds()
+        print(f"Request completed in {request_time} seconds")
         
         # Check if request was successful
         if response.status_code == 429:
