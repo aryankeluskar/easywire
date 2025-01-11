@@ -124,6 +124,55 @@
       align-items: center;
       gap: 0.5rem;
     }
+
+    @keyframes shimmer {
+        0% {
+            transform: translateX(-100%);
+        }
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    #loading-progress {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(90deg, #0062ff, #147eff);
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+
+    #loading-progress::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.2) 50%,
+            rgba(255, 255, 255, 0) 100%
+        );
+        animation: shimmer 2s infinite;
+    }
+
+    /* Custom media query for perplexity link */
+    #perplexity-link {
+        display: none;
+    }
+
+    @media screen and (min-width: 768px) {
+        #perplexity-link {
+            display: block;
+        }
+    }
+
+    @media screen and (max-width: 767px) {
+        #perplexity-link {
+            display: none;
+        }
+    }
   </style>
 
 <body class="cj90m c7e3b cisrt c7wkd c2gcs ce7fn clmvh">
@@ -187,7 +236,7 @@
                 <li id="github-link">
                   <a class="cpvyo cv7b2 cj90m c2gcs ccjiw cjnro c02c5" href="https://git.new/easywire">GitHub</a>
                 </li>
-                <li id="perplexity-link" class="hidden md:block">
+                <li id="perplexity-link">
                   <a class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5"
                     href="https://www.perplexity.ai/page/what-is-aryan-keluskar-working-MeaaCWPpQD.GlLF_gMKiLA">Perplexity</a>
                 </li>
@@ -247,7 +296,7 @@
             <div
               class="c1t8r c330t cfs2v c1upr c2wd7 cl110 cd8xp ctanz cqckm conig cc8zc c0zgo c3927 ciay6 c7a79 chwso clw5z cjewx ckwv3 cgio7 c9l48 cezsk">
               <div class="cgc2y c81ef czrhe coe0p">
-                <form class="ckwv3" action="/data" method="post" enctype='multipart/form-data'>
+                <form class="ckwv3" action="/data" method="post" enctype='multipart/form-data' id="transaction-form">
 
                   <!-- Border with dots in corners -->
                   <div
@@ -567,6 +616,158 @@
 
       // Disable to currency initially until from currency is selected
       toCurrency.disabled = true;
+    });
+  </script>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="fixed inset-0 flex flex-col items-center justify-center z-50 hidden" 
+       style="background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);">
+    <div class="p-8 rounded-lg shadow-lg max-w-md w-full mx-4" 
+         style="background: repeating-linear-gradient(0deg, rgba(235, 236, 255, 0.2) 0px, rgba(235, 236, 255, 0.2) 1px, transparent 1px, transparent 50px),
+                repeating-linear-gradient(90deg, rgba(235, 236, 255, 0.2) 0px, rgba(235, 236, 255, 0.2) 1px, transparent 1px, transparent 50px),
+                linear-gradient(to bottom, rgba(235, 236, 255, 0.97), rgba(220, 221, 255, 0.97));
+                box-shadow: 0 0 30px rgba(200, 203, 248, 0.2);">
+        <div class="flex items-center justify-center mb-4">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+        <h3 class="text-lg font-semibold text-center mb-4 text-gray-900">Processing Your Transaction</h3>
+        <div id="loading-status" class="text-sm text-gray-600 text-center mb-4">
+            Validating transaction details...
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4 relative overflow-hidden">
+            <div id="loading-progress" class="bg-blue-600 h-2.5 rounded-full transition-all duration-700 ease-in-out relative" style="width: 0%">
+                <div class="absolute inset-0 bg-white/30 animate-[shimmer_2s_infinite]"></div>
+            </div>
+        </div>
+        <div class="flex justify-center text-lg font-semibold text-center text-gray-900">
+            <button onclick="window.location.href='/'" class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5">Cancel</button>
+        </div>
+    </div>
+  </div>
+
+  <style>
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+#loading-progress {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(90deg, #0062ff, #147eff);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+#loading-progress::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    animation: shimmer 2s infinite;
+}
+</style>
+
+  <script>
+    // Testing configuration
+    const isTestingLoadingScreen = false; 
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('transaction-form');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingStatus = document.getElementById('loading-status');
+        const loadingProgress = document.getElementById('loading-progress');
+        const submitButton = form.querySelector('button[type="submit"]');
+
+        const updateLoadingStatus = (message, progress) => {
+            loadingStatus.textContent = message;
+            loadingProgress.style.width = `${progress}%`;
+        };
+
+
+        // If in testing mode, show loading screen immediately
+        if (isTestingLoadingScreen) {
+            // Disable submit button
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            // Show loading overlay
+            loadingOverlay.classList.remove('hidden');
+            
+            // Simulate progress updates
+            updateLoadingStatus('Validating transaction details...', 20);
+            setTimeout(() => updateLoadingStatus('Processing currency data...', 40), 1000);
+            setTimeout(() => updateLoadingStatus('Analyzing exchange rates...', 60), 2000);
+            setTimeout(() => updateLoadingStatus('Finalizing transaction...', 80), 3000);
+            setTimeout(() => updateLoadingStatus('Test mode: Loading screen visible', 100), 4000);
+        }
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Disable submit button
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            // Show loading overlay
+            loadingOverlay.classList.remove('hidden');
+            
+            // Simulate progress updates
+            updateLoadingStatus('Validating transaction details...', 20);
+            
+            try {
+                const formData = new FormData(form);
+                
+                setTimeout(() => updateLoadingStatus('Processing currency data...', 40), 1000);
+                setTimeout(() => updateLoadingStatus('Analyzing exchange rates...', 60), 2000);
+                setTimeout(() => updateLoadingStatus('Finalizing transaction...', 80), 3000);
+                
+                // If in testing mode, don't submit the form
+                if (isTestingLoadingScreen) {
+                    console.log('Testing mode: Loading screen will remain visible');
+                    setTimeout(() => updateLoadingStatus('Test mode: Loading screen visible', 100), 4000);
+                    return; // Stop here in testing mode
+                }
+                
+                const response = await fetch('/data', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.redirected) {
+                    updateLoadingStatus('Redirecting to success page...', 100);
+                    window.location.href = response.url;
+                } else {
+                    const html = await response.text();
+                    document.documentElement.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                updateLoadingStatus('An error occurred. Please try again.', 100);
+                
+                // Re-enable submit button on error
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                // Hide loading overlay after a short delay if not in testing mode
+                if (!isTestingLoadingScreen) {
+                    setTimeout(() => {
+                        loadingOverlay.classList.add('hidden');
+                    }, 2000);
+                }
+            }
+        });
     });
   </script>
 
