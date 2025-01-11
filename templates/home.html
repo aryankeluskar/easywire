@@ -56,7 +56,7 @@
               // Pre-fill and disable email input if user is logged in
               if (emailInput) {
                 emailInput.value = user.primaryEmailAddress.emailAddress;
-                emailInput.disabled = true;
+                emailInput.setAttribute('readonly', 'readonly');
               }
               document.getElementById('profile-button').onclick = () => window.Clerk.openUserProfile();
               document.getElementById('sign-out-button').onclick = async () => {
@@ -65,6 +65,7 @@
                 document.getElementById('alerts-link').style.display = 'none';
                 document.getElementById('github-link').style.display = 'block';
                 document.getElementById('perplexity-link').style.display = 'block';
+                document.getElementById('contact-link').style.display = 'block';
                 window.location.href = '/';
               };
               // Show/hide elements based on authentication
