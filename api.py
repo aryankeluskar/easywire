@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 import os
 import requests
 from clerk_backend_api import Clerk
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 from pymongo import MongoClient
 import socket
@@ -156,14 +156,55 @@ async def data(
     # All validations passed, proceed with the request
     print(f"Processing transaction: {amount} {from_currency} to {to_currency}")
     
-    # Store the alert in MongoDB
+    # Check if we have cached forex data
+    cache_key = f"{from_currency}_{to_currency}_{amount}"
+    cached_data = db.forex_cache.find_one({"cache_key": cache_key})
+    
+    if cached_data:
+        forex_data = cached_data["forex_data"]
+        print(f"Using cached forex data for {cache_key}")
+    else:
+        # Fetch new data from API
+        api_url = "https://ewb.aryankeluskar.com/generate_data"
+        params = {
+            "from_currency": from_currency,
+            "to_currency": to_currency,
+            "password": os.getenv('API_PASSWORD')
+        }
+        
+        try:
+            response = requests.get(api_url, params=params, timeout=30)
+            response.raise_for_status()
+            forex_data = response.json()
+            
+            # Cache the forex data
+            db.forex_cache.insert_one({
+                "cache_key": cache_key,
+                "forex_data": forex_data,
+                "created_at": datetime.utcnow(),
+                "expires_at": datetime.utcnow() + timedelta(hours=24)  # Cache for 24 hours
+            })
+            print(f"Cached new forex data for {cache_key}")
+        except Exception as e:
+            print(f"Error fetching forex data: {str(e)}")
+            return templates.TemplateResponse(
+                "error.html",
+                {
+                    "request": request,
+                    "error": "Unable to fetch forex data. Please try again later."
+                },
+                status_code=500
+            )
+    
+    # Store the alert in MongoDB with the forex data
     alert_data = {
         "amount": float(amount),
         "from_currency": from_currency,
         "to_currency": to_currency,
         "target_date": datetime.strptime(date, '%Y-%m-%d'),
         "email": email,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
+        "forex_data": forex_data  # Store the forex data with the alert
     }
     alerts_collection.insert_one(alert_data)
     
@@ -197,60 +238,80 @@ async def success(request: Request, from_curr: str, to_curr: str):
                 status_code=400
             )
 
-        api_url = f"https://ewb.aryankeluskar.com/generate_data"
-        params = {
-            "from_currency": from_curr,
-            "to_currency": to_curr,
-            "password": os.getenv('API_PASSWORD')
-        }
-        
-        print(f"Making request to {api_url} with params: {from_curr}, {to_curr}")
-        start_time = datetime.now()
-        
-        response = requests.get(api_url, params=params, timeout=30)
-        
-        request_time = (datetime.now() - start_time).total_seconds()
-        print(f"Request completed in {request_time} seconds")
-        
-        # Check if request was successful
-        if response.status_code == 429:
-            return templates.TemplateResponse(
-                "error.html",
-                {
-                    "request": request,
-                    "error": "Too many requests. Please try again in a few minutes."
-                },
-                status_code=429
-            )
-        
-        response.raise_for_status()
-        
-        try:
-            forex_data = response.json()
-            if not forex_data:
-                raise ValueError("Empty response from forex service")
-                
-            # Add success message to the template
-            return templates.TemplateResponse(
-                "success.html",
-                { 
-                    "from_curr": from_curr,
-                    "to_curr": to_curr,
-                    "request": request,
-                    "forex_data": forex_data,
-                    "success_message": "Successfully fetched forex data!"
+        # Try to get the most recent alert with these currencies
+        latest_alert = alerts_collection.find_one(
+            {
+                "from_currency": from_curr,
+                "to_currency": to_curr
+            },
+            sort=[("created_at", -1)]
+        )
+
+        if latest_alert and "forex_data" in latest_alert:
+            print(f"Using forex data from latest alert for {from_curr} to {to_curr}")
+            forex_data = latest_alert["forex_data"]
+        else:
+            # Try to get from forex cache
+            cache_key = f"{from_curr}_{to_curr}_1"  # Use 1 as default amount for cache
+            cached_data = db.forex_cache.find_one({
+                "cache_key": cache_key,
+                "expires_at": {"$gt": datetime.utcnow()}  # Check if cache hasn't expired
+            })
+            
+            if cached_data:
+                print(f"Using cached forex data for {from_curr} to {to_curr}")
+                forex_data = cached_data["forex_data"]
+            else:
+                # If no cache, fetch from API
+                print(f"Making request to API for {from_curr} to {to_curr}")
+                api_url = f"https://ewb.aryankeluskar.com/generate_data"
+                params = {
+                    "from_currency": from_curr,
+                    "to_currency": to_curr,
+                    "password": os.getenv('API_PASSWORD')
                 }
-            )
-        except (json.JSONDecodeError, ValueError) as e:
-            print(f"Data parsing error: {str(e)}")
-            return templates.TemplateResponse(
-                "error.html",
-                {
-                    "request": request,
-                    "error": "Unable to process forex data. Please try again later."
-                },
-                status_code=500
-            )
+                
+                start_time = datetime.now()
+                response = requests.get(api_url, params=params, timeout=30)
+                request_time = (datetime.now() - start_time).total_seconds()
+                print(f"Request completed in {request_time} seconds")
+                
+                if response.status_code == 429:
+                    return templates.TemplateResponse(
+                        "error.html",
+                        {
+                            "request": request,
+                            "error": "Too many requests. Please try again in a few minutes."
+                        },
+                        status_code=429
+                    )
+                
+                response.raise_for_status()
+                forex_data = response.json()
+                
+                # Cache the new forex data
+                db.forex_cache.insert_one({
+                    "cache_key": cache_key,
+                    "forex_data": forex_data,
+                    "created_at": datetime.utcnow(),
+                    "expires_at": datetime.utcnow() + timedelta(hours=24)
+                })
+                print(f"Cached new forex data for {cache_key}")
+
+        if not forex_data:
+            raise ValueError("Empty response from forex service")
+            
+        # Add success message to the template
+        return templates.TemplateResponse(
+            "success.html",
+            { 
+                "from_curr": from_curr,
+                "to_curr": to_curr,
+                "request": request,
+                "forex_data": forex_data,
+                "success_message": "Successfully fetched forex data!"
+            }
+        )
 
     except requests.Timeout:
         return templates.TemplateResponse(
