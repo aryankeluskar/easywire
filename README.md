@@ -45,4 +45,4 @@ This will start the app on [http://localhost:8000](http://localhost:8000).
 
 
 ## 🌄 Inspiration
-- [nights & weekends s5](https://buildspace.so/)
+- conceptualized and built during [nights & weekends s5](https://buildspace.so/)
