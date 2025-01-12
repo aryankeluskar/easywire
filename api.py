@@ -397,3 +397,39 @@ async def alerts(request: Request):
             },
             status_code=500
         )
+
+@app.post("/delete")
+async def delete_alerts(request: Request):
+    """
+    Endpoint to delete selected alerts
+    """
+    try:
+        # Parse the request body
+        data = await request.json()
+        ids = data.get('ids', [])
+        
+        if not ids:
+            raise HTTPException(status_code=400, detail="No alert IDs provided")
+        
+        # Convert string IDs to ObjectId and delete the alerts
+        from bson.objectid import ObjectId
+        result = alerts_collection.delete_many({
+            "_id": {"$in": [ObjectId(id) for id in ids]}
+        })
+        
+        if result.deleted_count > 0:
+            return JSONResponse(content={
+                "success": True,
+                "message": f"Successfully deleted {result.deleted_count} alert(s)"
+            })
+        else:
+            return JSONResponse(content={
+                "success": False,
+                "message": "No alerts were deleted"
+            }, status_code=404)
+            
+    except Exception as e:
+        return JSONResponse(content={
+            "success": False,
+            "message": str(e)
+        }, status_code=500)

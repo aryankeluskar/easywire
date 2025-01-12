@@ -678,6 +678,65 @@
 
       // Initialize button state
       updateDeleteButton();
+
+      // Add delete button click handler
+      const deleteButton = deleteButtonContainer.querySelector('button');
+      deleteButton.addEventListener('click', async function() {
+        const selectedIds = Array.from(alertCheckboxes)
+          .filter(checkbox => checkbox.checked)
+          .map(checkbox => checkbox.closest('tr').dataset.alertId);
+
+        if (selectedIds.length === 0) return;
+
+        // Show loading overlay
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingStatus = document.getElementById('loading-status');
+        const loadingProgress = document.getElementById('loading-progress');
+        loadingOverlay.classList.remove('hidden');
+
+        try {
+          const response = await fetch('/delete', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ids: selectedIds })
+          });
+
+          if (response.ok) {
+            // Remove deleted rows from the table
+            selectedIds.forEach(id => {
+              const row = document.querySelector(`tr[data-alert-id="${id}"]`);
+              if (row) row.remove();
+            });
+
+            // Update UI state
+            updateDeleteButton();
+            
+            // If no alerts left, show the "No alerts" message
+            const tbody = document.querySelector('tbody');
+            if (!tbody.querySelector('tr')) {
+              tbody.innerHTML = `
+                <tr>
+                  <td colspan="6" class="px-6 py-4 text-center text-base text-gray-900 dark:text-gray-100">
+                    No alerts found. Create one from the home page!
+                  </td>
+                </tr>
+              `;
+            }
+          } else {
+            throw new Error('Failed to delete alerts');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          loadingStatus.textContent = 'An error occurred. Please try again.';
+        } finally {
+          // Hide loading overlay after a short delay
+          setTimeout(() => {
+            loadingOverlay.classList.add('hidden');
+          }, 1000);
+        }
+      });
     });
   </script>
 
