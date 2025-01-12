@@ -22,12 +22,8 @@ mongo_client = MongoClient(MONGO_CONNECTION_STRING)
 db = mongo_client['easywire']
 alerts_collection = db['alerts']
 
-# Determine environment
-is_local = socket.gethostname() == 'localhost' or socket.gethostname().startswith('127.0.0.1')
-CLERK_SECRET_KEY = os.getenv('LOCAL_CLERK_SECRET_KEY') if is_local else os.getenv('CLERK_SECRET_KEY')
-
 # Initialize Clerk
-clerk = Clerk(bearer_auth=CLERK_SECRET_KEY)
+clerk = Clerk(bearer_auth=os.getenv('CLERK_SECRET_KEY'))
 
 app = FastAPI()
 app.add_middleware(
