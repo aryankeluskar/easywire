@@ -11,11 +11,23 @@ import requests
 from clerk_backend_api import Clerk
 from datetime import datetime
 import re
+from pymongo import MongoClient
+import socket
 
 load_dotenv()
 
+# MongoDB Connection
+MONGO_CONNECTION_STRING = os.getenv('MONGO_CONNECTION_STRING_P1') + os.getenv('MONGODB_USER_PWD') + os.getenv('MONGO_CONNECTION_STRING_P2')
+mongo_client = MongoClient(MONGO_CONNECTION_STRING)
+db = mongo_client['easywire']
+alerts_collection = db['alerts']
+
+# Determine environment
+is_local = socket.gethostname() == 'localhost' or socket.gethostname().startswith('127.0.0.1')
+CLERK_SECRET_KEY = os.getenv('LOCAL_CLERK_SECRET_KEY') if is_local else os.getenv('CLERK_SECRET_KEY')
+
 # Initialize Clerk
-clerk = Clerk(bearer_auth=os.getenv('CLERK_SECRET_KEY'))
+clerk = Clerk(bearer_auth=CLERK_SECRET_KEY)
 
 app = FastAPI()
 app.add_middleware(
@@ -147,6 +159,17 @@ async def data(
     
     # All validations passed, proceed with the request
     print(f"Processing transaction: {amount} {from_currency} to {to_currency}")
+    
+    # Store the alert in MongoDB
+    alert_data = {
+        "amount": float(amount),
+        "from_currency": from_currency,
+        "to_currency": to_currency,
+        "target_date": datetime.strptime(date, '%Y-%m-%d'),
+        "email": email,
+        "created_at": datetime.utcnow()
+    }
+    alerts_collection.insert_one(alert_data)
     
     # Redirect to success page with the selected currencies
     return RedirectResponse(url=f"/success?from_curr={from_currency}&to_curr={to_currency}", status_code=303)
@@ -286,3 +309,34 @@ async def get_user(auth = Depends(require_auth)):
             "last_name": user.last_name
         }
     })
+
+@app.get("/alerts")
+async def alerts(request: Request):
+    """
+    Endpoint to display user's currency alerts
+    """
+    try:
+        # Get all alerts from MongoDB
+        alerts_list = list(alerts_collection.find().sort("created_at", -1))
+        
+        # Convert ObjectId to string for each alert
+        for alert in alerts_list:
+            alert["_id"] = str(alert["_id"])
+        
+        return templates.TemplateResponse(
+            "alerts.html",
+            {
+                "request": request,
+                "alerts": alerts_list
+            }
+        )
+    except Exception as e:
+        print(f"Error fetching alerts: {str(e)}")
+        return templates.TemplateResponse(
+            "error.html",
+            {
+                "request": request,
+                "error": "Unable to fetch alerts. Please try again later."
+            },
+            status_code=500
+        )

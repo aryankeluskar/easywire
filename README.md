@@ -28,9 +28,14 @@ pip install -r requirements.txt
 Copy the `.env.example` file to `.env` and fill in the values.
 
 ```config
-API_PASSWORD=<contact easywire@aryankeluskar.com for the backend API key>
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=<obtain from clerk.dev>
-CLERK_SECRET_KEY=<obtain from clerk.dev>
+# API Configuration
+# Required: Contact easywire@aryankeluskar.com for backend API credentials
+API_PASSWORD=your_api_password_here
+
+# Clerk Authentication Configuration
+# Required: Sign up at https://clerk.dev to obtain credentials
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key_here 
+CLERK_SECRET_KEY=your_clerk_secret_key_here
 ```
 
 
@@ -45,4 +50,4 @@ This will start the app on [http://localhost:8000](http://localhost:8000).
 
 
 ## 🌄 Inspiration
-- conceptualized and built during [nights & weekends s5](https://buildspace.so/)
+- conceptualized and developed at [buildspace nights & weekends s5](https://buildspace.so/)
