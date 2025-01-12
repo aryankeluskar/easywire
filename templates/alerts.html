@@ -605,8 +605,10 @@
 
       // Function to check if any checkbox is selected
       function updateDeleteButton() {
-        const anyChecked = Array.from(alertCheckboxes).some(checkbox => checkbox.checked) || selectAllCheckbox.checked;
+        const anyChecked = Array.from(alertCheckboxes).some(checkbox => checkbox.checked);
         deleteButtonContainer.classList.toggle('hidden', !anyChecked);
+        // Update select all checkbox state
+        selectAllCheckbox.checked = alertCheckboxes.length > 0 && Array.from(alertCheckboxes).every(cb => cb.checked);
       }
 
       // Select all checkbox functionality
@@ -619,12 +621,11 @@
 
       // Individual checkbox functionality
       alertCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-          updateDeleteButton();
-          // Update select all checkbox
-          selectAllCheckbox.checked = Array.from(alertCheckboxes).every(cb => cb.checked);
-        });
+        checkbox.addEventListener('change', updateDeleteButton);
       });
+
+      // Initialize button state
+      updateDeleteButton();
     });
   </script>
 
