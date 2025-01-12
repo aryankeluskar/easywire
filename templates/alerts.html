@@ -356,16 +356,30 @@
                   </div>
                 </div>
 
-                <!-- Loading overlay -->
-                <div id="loading-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div class="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-sm w-full mx-4 text-center">
-                        <div class="mb-4">
-                            <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                                <div id="loading-progress" class="h-full w-0 transition-all duration-500 ease-out"></div>
-                            </div>
-                        </div>
-                        <p id="loading-status" class="text-gray-600 dark:text-gray-300">Processing...</p>
-                    </div>
+                <!-- Loading Overlay -->
+                <div id="loading-overlay" class="fixed inset-0 flex flex-col items-center justify-center z-50 hidden" 
+                     style="background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);">
+                  <div class="p-8 rounded-lg shadow-lg max-w-md w-full mx-4" 
+                       style="background: repeating-linear-gradient(0deg, rgba(235, 236, 255, 0.2) 0px, rgba(235, 236, 255, 0.2) 1px, transparent 1px, transparent 50px),
+                              repeating-linear-gradient(90deg, rgba(235, 236, 255, 0.2) 0px, rgba(235, 236, 255, 0.2) 1px, transparent 1px, transparent 50px),
+                              linear-gradient(to bottom, rgba(235, 236, 255, 0.97), rgba(220, 221, 255, 0.97));
+                              box-shadow: 0 0 30px rgba(200, 203, 248, 0.2);">
+                      <div class="flex items-center justify-center mb-4">
+                          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                      </div>
+                      <h3 class="text-lg font-semibold text-center mb-4 text-gray-900">Processing Your Request</h3>
+                      <div id="loading-status" class="text-sm text-gray-600 text-center mb-4">
+                          Processing...
+                      </div>
+                      <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4 relative overflow-hidden">
+                          <div id="loading-progress" class="bg-blue-600 h-2.5 rounded-full transition-all duration-700 ease-in-out relative" style="width: 0%">
+                              <div class="absolute inset-0 bg-white/30 animate-[shimmer_2s_infinite]"></div>
+                          </div>
+                      </div>
+                      <div class="flex justify-center text-lg font-semibold text-center text-gray-900">
+                          <button onclick="window.location.href='/alerts'" class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5">Cancel</button>
+                      </div>
+                  </div>
                 </div>
 
               </div>
