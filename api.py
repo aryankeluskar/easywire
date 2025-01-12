@@ -198,18 +198,67 @@ async def data(
     return RedirectResponse(url=f"/success?from_curr={from_currency}&to_curr={to_currency}", status_code=303)
 
 async def fetch_forex_data(from_currency: str, to_currency: str):
-    """Helper function to fetch forex data from API"""
-    api_url = "https://ewb.aryankeluskar.com/generate_data"
-    params = {
-        "from_currency": from_currency,
-        "to_currency": to_currency,
-        "password": os.getenv('API_PASSWORD')
-    }
+    """Helper function to fetch forex data from Alpha Vantage and news from custom API"""
+    ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
+    
+    # Fetch current exchange rate
+    url = f"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={from_currency}&to_currency={to_currency}&apikey={ALPHA_VANTAGE_API_KEY}"
     
     try:
-        response = requests.get(api_url, params=params, timeout=30)
+        response = requests.get(url, timeout=30)
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+        
+        if "Realtime Currency Exchange Rate" not in data:
+            raise Exception("Failed to fetch forex data from Alpha Vantage")
+        
+        exchange_rate = float(data["Realtime Currency Exchange Rate"]["5. Exchange Rate"])
+        
+        # Fetch historical data for predictions
+        historical_url = f"https://www.alphavantage.co/query?function=FX_DAILY&from_symbol={from_currency}&to_symbol={to_currency}&apikey={ALPHA_VANTAGE_API_KEY}"
+        historical_response = requests.get(historical_url, timeout=30)
+        historical_response.raise_for_status()
+        historical_data = historical_response.json()
+        
+        if "Time Series FX (Daily)" not in historical_data:
+            raise Exception("Failed to fetch historical forex data from Alpha Vantage")
+            
+        time_series = historical_data["Time Series FX (Daily)"]
+        dates = sorted(time_series.keys(), reverse=True)
+        
+        # Calculate 52-week high and low
+        high_52 = -float('inf')
+        low_52 = float('inf')
+        for date in dates[:252]:  # ~252 trading days in a year
+            high_52 = max(high_52, float(time_series[date]["2. high"]))
+            low_52 = min(low_52, float(time_series[date]["3. low"]))
+        
+        # Simple prediction based on 7-day trend
+        rates_7d = [float(time_series[date]["4. close"]) for date in dates[:7]]
+        trend = sum(rates_7d[i] - rates_7d[i+1] for i in range(len(rates_7d)-1)) / (len(rates_7d)-1)
+        predicted_tomorrow = exchange_rate + trend
+        
+        # Fetch news from custom API
+        news_url = "https://ewb.aryankeluskar.com/generate_data"
+        news_response = requests.get(news_url, params={
+            "from_currency": from_currency,
+            "to_currency": to_currency,
+            "password": os.getenv('API_PASSWORD')
+        }, timeout=30)
+        news_response.raise_for_status()
+        news_data = news_response.json()
+        
+        return {
+            "current_rate": str(exchange_rate),
+            "opening_price": str(float(time_series[dates[0]]["1. open"])),
+            "closing_price": str(float(time_series[dates[0]]["4. close"])),
+            "high_52": str(high_52),
+            "low_52": str(low_52),
+            "predicted_change_tomorrow": trend > 0,
+            "predicted_rate_tomorrow": str(predicted_tomorrow),
+            "top5_news_articles": news_data.get("top5_news_articles", [])
+        }
+        
     except Exception as e:
         print(f"Error fetching forex data: {str(e)}")
         raise HTTPException(status_code=500, detail="Unable to fetch forex data. Please try again later.")
