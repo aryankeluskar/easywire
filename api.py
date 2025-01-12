@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 import re
 from pymongo import MongoClient
 import socket
+import hashlib
 
 load_dotenv()
 
@@ -101,6 +102,7 @@ async def data(
     to_currency: Annotated[str, Form()],
     date: Annotated[str, Form()],
     email: Annotated[str, Form()],
+    user = Depends(get_auth_user)
 ):
     errors = []
     
@@ -156,28 +158,19 @@ async def data(
     # All validations passed, proceed with the request
     print(f"Processing transaction: {amount} {from_currency} to {to_currency}")
     
-    # Check if we have cached forex data
-    cache_key = f"{from_currency}_{to_currency}_{amount}"
-    cached_data = db.forex_cache.find_one({"cache_key": cache_key})
-    
-    if cached_data:
-        forex_data = cached_data["forex_data"]
-        print(f"Using cached forex data for {cache_key}")
-    else:
-        # Fetch new data from API
-        api_url = "https://ewb.aryankeluskar.com/generate_data"
-        params = {
-            "from_currency": from_currency,
-            "to_currency": to_currency,
-            "password": os.getenv('API_PASSWORD')
-        }
+    # Only use caching if user is signed in
+    if user:
+        # Create a secure hash of the email using SHA-256
+        email_hash = hashlib.sha256(email.encode()).hexdigest()
+        cache_key = f"{from_currency}_{to_currency}_{email_hash}_{amount}"
+        cached_data = db.forex_cache.find_one({"cache_key": cache_key})
         
-        try:
-            response = requests.get(api_url, params=params, timeout=30)
-            response.raise_for_status()
-            forex_data = response.json()
-            
-            # Cache the forex data
+        if cached_data:
+            forex_data = cached_data["forex_data"]
+            print(f"Using cached forex data for {cache_key}")
+        else:
+            forex_data = await fetch_forex_data(from_currency, to_currency)
+            # Cache the forex data only for signed in users
             db.forex_cache.insert_one({
                 "cache_key": cache_key,
                 "forex_data": forex_data,
@@ -185,16 +178,9 @@ async def data(
                 "expires_at": datetime.utcnow() + timedelta(hours=24)  # Cache for 24 hours
             })
             print(f"Cached new forex data for {cache_key}")
-        except Exception as e:
-            print(f"Error fetching forex data: {str(e)}")
-            return templates.TemplateResponse(
-                "error.html",
-                {
-                    "request": request,
-                    "error": "Unable to fetch forex data. Please try again later."
-                },
-                status_code=500
-            )
+    else:
+        # For non-signed in users, directly fetch without caching
+        forex_data = await fetch_forex_data(from_currency, to_currency)
     
     # Store the alert in MongoDB with the forex data
     alert_data = {
@@ -211,6 +197,23 @@ async def data(
     # Redirect to success page with the selected currencies
     return RedirectResponse(url=f"/success?from_curr={from_currency}&to_curr={to_currency}", status_code=303)
 
+async def fetch_forex_data(from_currency: str, to_currency: str):
+    """Helper function to fetch forex data from API"""
+    api_url = "https://ewb.aryankeluskar.com/generate_data"
+    params = {
+        "from_currency": from_currency,
+        "to_currency": to_currency,
+        "password": os.getenv('API_PASSWORD')
+    }
+    
+    try:
+        response = requests.get(api_url, params=params, timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        print(f"Error fetching forex data: {str(e)}")
+        raise HTTPException(status_code=500, detail="Unable to fetch forex data. Please try again later.")
+
 # @app.get("/graph/usd_inr_all")
 # async def graph_usd_inr_all():
 #     return FileResponse("data/usd_inr_all.png")
@@ -220,7 +223,7 @@ async def data(
 #     return FileResponse("favicon.ico")
 
 @app.get("/success")
-async def success(request: Request, from_curr: str, to_curr: str):
+async def success(request: Request, from_curr: str, to_curr: str, user = Depends(get_auth_user)):
     """
     Endpoint that fetches forex data and displays it using a template
     """
@@ -251,52 +254,32 @@ async def success(request: Request, from_curr: str, to_curr: str):
             print(f"Using forex data from latest alert for {from_curr} to {to_curr}")
             forex_data = latest_alert["forex_data"]
         else:
-            # Try to get from forex cache
-            cache_key = f"{from_curr}_{to_curr}_1"  # Use 1 as default amount for cache
-            cached_data = db.forex_cache.find_one({
-                "cache_key": cache_key,
-                "expires_at": {"$gt": datetime.utcnow()}  # Check if cache hasn't expired
-            })
-            
-            if cached_data:
-                print(f"Using cached forex data for {from_curr} to {to_curr}")
-                forex_data = cached_data["forex_data"]
-            else:
-                # If no cache, fetch from API
-                print(f"Making request to API for {from_curr} to {to_curr}")
-                api_url = f"https://ewb.aryankeluskar.com/generate_data"
-                params = {
-                    "from_currency": from_curr,
-                    "to_currency": to_curr,
-                    "password": os.getenv('API_PASSWORD')
-                }
-                
-                start_time = datetime.now()
-                response = requests.get(api_url, params=params, timeout=30)
-                request_time = (datetime.now() - start_time).total_seconds()
-                print(f"Request completed in {request_time} seconds")
-                
-                if response.status_code == 429:
-                    return templates.TemplateResponse(
-                        "error.html",
-                        {
-                            "request": request,
-                            "error": "Too many requests. Please try again in a few minutes."
-                        },
-                        status_code=429
-                    )
-                
-                response.raise_for_status()
-                forex_data = response.json()
-                
-                # Cache the new forex data
-                db.forex_cache.insert_one({
+            # Only use cache for signed in users
+            if user:
+                # Create a secure hash for default user
+                default_hash = hashlib.sha256('default'.encode()).hexdigest()
+                cache_key = f"{from_curr}_{to_curr}_{default_hash}_{1}"  # Use 1 as default amount for cache
+                cached_data = db.forex_cache.find_one({
                     "cache_key": cache_key,
-                    "forex_data": forex_data,
-                    "created_at": datetime.utcnow(),
-                    "expires_at": datetime.utcnow() + timedelta(hours=24)
+                    "expires_at": {"$gt": datetime.utcnow()}  # Check if cache hasn't expired
                 })
-                print(f"Cached new forex data for {cache_key}")
+                
+                if cached_data:
+                    print(f"Using cached forex data for {from_curr} to {to_curr}")
+                    forex_data = cached_data["forex_data"]
+                else:
+                    forex_data = await fetch_forex_data(from_curr, to_curr)
+                    # Cache the new forex data
+                    db.forex_cache.insert_one({
+                        "cache_key": cache_key,
+                        "forex_data": forex_data,
+                        "created_at": datetime.utcnow(),
+                        "expires_at": datetime.utcnow() + timedelta(hours=24)
+                    })
+                    print(f"Cached new forex data for {cache_key}")
+            else:
+                # For non-signed in users, directly fetch without caching
+                forex_data = await fetch_forex_data(from_curr, to_curr)
 
         if not forex_data:
             raise ValueError("Empty response from forex service")
