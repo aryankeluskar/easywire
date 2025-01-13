@@ -1,102 +1,95 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forex Data Analysis</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100">
-    <!-- Return Home Button -->
-    <div class="fixed top-4 right-4">
-        <a href="https://dub.sh/easywire" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200">
-            Return Home
-        </a>
-    </div>
-    <div class="container mx-auto px-4 py-8">
-        <div class="max-w-4xl mx-auto">
-            <h1 class="text-3xl font-bold text-center mb-8 text-blue-600">{{ from_curr }} to {{ to_curr }} Exchange Rate Analysis</h1>
-            
-            <!-- Current Rates Card -->
-            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-                <h2 class="text-xl font-semibold mb-4">Current Exchange Rates</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="p-4 bg-blue-50 rounded-lg">
-                        <p class="text-sm text-gray-600">Current Rate</p>
-                        <p class="text-lg font-bold">{{ forex_data.current_rate }}</p>
-                    </div>
-                    <div class="p-4 bg-green-50 rounded-lg">
-                        <p class="text-sm text-gray-600">Opening Price</p>
-                        <p class="text-lg font-bold">{{ forex_data.opening_price }}</p>
-                    </div>
-                    <div class="p-4 bg-purple-50 rounded-lg">
-                        <p class="text-sm text-gray-600">Closing Price</p>
-                        <p class="text-lg font-bold">{{ forex_data.closing_price }}</p>
-                    </div>
-                </div>
-            </div>
+{% extends "base.html" %}
 
-            <!-- GDP Information -->
-            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-                <h2 class="text-xl font-semibold mb-4">GDP Comparison</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="p-4 bg-yellow-50 rounded-lg">
-                        <p class="text-sm text-gray-600">From Country GDP</p>
-                        <p class="text-lg font-bold">{{ forex_data.gdp_from_country }}</p>
-                    </div>
-                    <div class="p-4 bg-orange-50 rounded-lg">
-                        <p class="text-sm text-gray-600">To Country GDP</p>
-                        <p class="text-lg font-bold">{{ forex_data.gdp_to_currency }}</p>
-                    </div>
+{% block content %}
+<!-- Return Home Button -->
+<div class="fixed top-4 right-4">
+    <a href="https://dub.sh/easywire" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200">
+        Return Home
+    </a>
+</div>
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8 text-blue-600">{{ from_curr }} to {{ to_curr }} Exchange Rate Analysis</h1>
+        
+        <!-- Current Rates Card -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Current Exchange Rates</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-4 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-gray-600">Current Rate</p>
+                    <p class="text-lg font-bold">{{ forex_data.current_rate }}</p>
                 </div>
-            </div>
-
-            <!-- 52 Week Range -->
-            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-                <h2 class="text-xl font-semibold mb-4">52 Week Range</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="p-4 bg-red-50 rounded-lg">
-                        <p class="text-sm text-gray-600">52 Week High</p>
-                        <p class="text-lg font-bold">{{ forex_data.high_52 }}</p>
-                    </div>
-                    <div class="p-4 bg-green-50 rounded-lg">
-                        <p class="text-sm text-gray-600">52 Week Low</p>
-                        <p class="text-lg font-bold">{{ forex_data.low_52 }}</p>
-                    </div>
+                <div class="p-4 bg-green-50 rounded-lg">
+                    <p class="text-sm text-gray-600">Opening Price</p>
+                    <p class="text-lg font-bold">{{ forex_data.opening_price }}</p>
                 </div>
-            </div>
-
-            <!-- Prediction -->
-            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-                <h2 class="text-xl font-semibold mb-4">Tomorrow's Prediction</h2>
-                <div class="p-4 bg-indigo-50 rounded-lg">
-                    <p class="text-sm text-gray-600">Predicted Rate</p>
-                    <p class="text-lg font-bold">{{ forex_data.predicted_rate_tomorrow }}</p>
-                    <p class="text-sm mt-2">
-                        {% if forex_data.predicted_change_tomorrow %}
-                        <span class="text-green-600">⬆ Expected to increase</span>
-                        {% else %}
-                        <span class="text-red-600">⬇ Expected to decrease</span>
-                        {% endif %}
-                    </p>
-                </div>
-            </div>
-
-            <!-- News Articles -->
-            <div class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-xl font-semibold mb-4">Latest News</h2>
-                <div class="space-y-4">
-                    {% for article in forex_data.top5_news_articles %}
-                    <a href="{{ article.news_url }}" target="_blank" class="block p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200">
-                        <div class="flex items-center">
-                            <img src="{{ article.news_icon }}" alt="News source icon" class="w-6 h-6 mr-3">
-                            <p class="text-gray-700">{{ article.news_one_liner }}</p>
-                        </div>
-                    </a>
-                    {% endfor %}
+                <div class="p-4 bg-purple-50 rounded-lg">
+                    <p class="text-sm text-gray-600">Closing Price</p>
+                    <p class="text-lg font-bold">{{ forex_data.closing_price }}</p>
                 </div>
             </div>
         </div>
+
+        <!-- GDP Information -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">GDP Comparison</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 bg-yellow-50 rounded-lg">
+                    <p class="text-sm text-gray-600">From Country GDP</p>
+                    <p class="text-lg font-bold">{{ forex_data.gdp_from_country }}</p>
+                </div>
+                <div class="p-4 bg-orange-50 rounded-lg">
+                    <p class="text-sm text-gray-600">To Country GDP</p>
+                    <p class="text-lg font-bold">{{ forex_data.gdp_to_currency }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 52 Week Range -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">52 Week Range</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 bg-red-50 rounded-lg">
+                    <p class="text-sm text-gray-600">52 Week High</p>
+                    <p class="text-lg font-bold">{{ forex_data.high_52 }}</p>
+                </div>
+                <div class="p-4 bg-green-50 rounded-lg">
+                    <p class="text-sm text-gray-600">52 Week Low</p>
+                    <p class="text-lg font-bold">{{ forex_data.low_52 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prediction -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Tomorrow's Prediction</h2>
+            <div class="p-4 bg-indigo-50 rounded-lg">
+                <p class="text-sm text-gray-600">Predicted Rate</p>
+                <p class="text-lg font-bold">{{ forex_data.predicted_rate_tomorrow }}</p>
+                <p class="text-sm mt-2">
+                    {% if forex_data.predicted_change_tomorrow %}
+                    <span class="text-green-600">⬆ Expected to increase</span>
+                    {% else %}
+                    <span class="text-red-600">⬇ Expected to decrease</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <!-- News Articles -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Latest News</h2>
+            <div class="space-y-4">
+                {% for article in forex_data.top5_news_articles %}
+                <a href="{{ article.news_url }}" target="_blank" class="block p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200">
+                    <div class="flex items-center">
+                        <img src="{{ article.news_icon }}" alt="News source icon" class="w-6 h-6 mr-3">
+                        <p class="text-gray-700">{{ article.news_one_liner }}</p>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
     </div>
-</body>
-</html> 
+</div>
+{% endblock %} 

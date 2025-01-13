@@ -1,645 +1,177 @@
-<!DOCTYPE html>
-<html lang="en" class="dark">
+{% extends "base.html" %}
 
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+{% block content %}
+<section>
+  <div class="c5fcz cnmmr cg498 cw2nq">
+    <div class="cy6zq crh5c">
+      <div class="cpthp czrhe cs10o">
+        <div class="c9pd1">
+          <h1 class="c0cnt ce627 cwr74 cfatl crlpf cbwmu c2gcs cr5d0 cvxf3 ch47f casec" style="font-size: 2rem; margin-bottom: 1rem;">your alerts</h1>
+        </div>
+      </div>
 
-  <title>EasyWire</title>
-  <link rel="icon" type="image/x-icon" href="./homepage_files/some pfp.jpg">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="https://unpkg.com/flowbite@1.4.4/dist/flowbite.min.css" />
-  <link media="all"
-    href="https://cruip.com/wp-content/cache/autoptimize/css/autoptimize_54fb091c550c668c4f261c1a2439a891.css"
-    rel="stylesheet">
-  <link href="./homepage_files/flatpickr.min.css" rel="stylesheet">
-  <link href="./homepage_files/style.css" rel="stylesheet">
-  <script>
-    if (localStorage.getItem('dark-mode') === 'false' || !('dark-mode' in localStorage)) {
-      document.querySelector('html').classList.remove('dark');
-    } else {
-      document.querySelector('html').classList.add('dark');
-    }
-  </script>
-  <script>
-    // Get the current domain and set environment-specific configurations
-    const domain = window.location.hostname;
-    const isLocalhost = domain === "localhost";
-    const clerkPubKey = isLocalhost 
-      ? "pk_test_cmVzb2x2ZWQtdmlwZXItOTYuY2xlcmsuYWNjb3VudHMuZGV2JA"  // Local test key
-      : "pk_live_Y2xlcmsuZWFzeXdpcmUuYXJ5YW5rZWx1c2thci5jb20k";  // Production key
-    const clerkDomain = isLocalhost 
-      ? "http://localhost:8000" 
-      : "https://clerk.easywire.aryankeluskar.com";
-  </script>
-  <script
-    async
-    crossorigin="anonymous"
-    data-clerk-publishable-key="pk_live_Y2xlcmsuZWFzeXdpcmUuYXJ5YW5rZWx1c2thci5jb20k"
-    data-clerk-frontend-api="https://clerk.easywire.aryankeluskar.com"
-    src="https://clerk.easywire.aryankeluskar.com/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
-    type="text/javascript">
-  </script>
-  <script>
-    async function initClerk() {
-      try {
-        if (!window.Clerk) {
-          console.error('Clerk not loaded yet');
-          return;
-        }
-        
-        await window.Clerk.load();
+      <div class="c1t8r c330t cfs2v c1upr c2wd7 cl110 cd8xp ctanz cqckm conig cc8zc c0zgo c3927 ciay6 c7a79 chwso clw5z cjewx ckwv3 cgio7 c9l48 cezsk" style="width: 80vw; margin: 0 auto;">
+        <div class="cgc2y c81ef czrhe coe0p" style="max-width: 100vw;">
+          <!-- Border with dots in corners -->
+          <div class="cq4r1 cfdqj ck5ws c5pov cehp5 chqy8 cym3j cxpxq cvvig c0cnt cba0k crgvw ci2tu c2z22 csmr0 cr2ij cpue7 c26dl cevtx cr5hf cxgoq cjkk2 c1qs0 ccjiw cr8aa clot7 cag0k" aria-hidden="true"></div>
+          
+          <div class="relative overflow-x-auto cacgm">
+            <table class="w-full text-sm text-left">
+              <thead class="text-xs uppercase">
+                <tr>
+                  <th scope="col" class="px-6 py-3">
+                    <input type="checkbox" id="select-all" class="coyoz cc7et coe0p cyujy cjygq rounded-none">
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-lg font-bold text-gray-900 dark:text-white">Date Posted</th>
+                  <th scope="col" class="px-6 py-3 text-lg font-bold text-gray-900 dark:text-white">Deadline Date</th>
+                  <th scope="col" class="px-6 py-3 text-lg font-bold text-gray-900 dark:text-white">From Currency</th>
+                  <th scope="col" class="px-6 py-3 text-lg font-bold text-gray-900 dark:text-white">To Currency</th>
+                  <th scope="col" class="px-6 py-3 text-lg font-bold text-gray-900 dark:text-white">Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if alerts %}
+                  {% for alert in alerts %}
+                  <tr class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors" 
+                      data-alert-id="{{ alert._id }}"
+                      onclick="handleRowClick(this)"
+                      data-from-currency="{{ alert.from_currency }}"
+                      data-to-currency="{{ alert.to_currency }}"
+                      data-amount="{{ alert.amount }}">
+                    <td class="px-6 py-4 w-10 h-10" onclick="event.stopPropagation()">
+                      <input type="checkbox" class="alert-checkbox coyoz cc7et coe0p cyujy cjygq">
+                    </td>
+                    <td class="px-6 py-4 text-base text-gray-900 dark:text-gray-100">{{ alert.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td class="px-6 py-4 text-base text-gray-900 dark:text-gray-100">{{ alert.target_date.strftime('%Y-%m-%d') }}</td>
+                    <td class="px-6 py-4 text-base text-gray-900 dark:text-gray-100">{{ alert.from_currency }}</td>
+                    <td class="px-6 py-4 text-base text-gray-900 dark:text-gray-100">{{ alert.to_currency }}</td>
+                    <td class="px-6 py-4 text-base text-gray-900 dark:text-gray-100">{{ "%.2f"|format(alert.amount) }}</td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-base text-gray-900 dark:text-gray-100">
+                      No alerts found. Create one from the home page!
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+            <div id="delete-button-container" class="mt-4 text-center hidden">
+              <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5 bg-red-500 hover:bg-red-600">Delete Selected</button>
+            </div>
+          </div>
 
-        // Add event listeners for auth state changes
-        window.Clerk.addListener(({ user }) => {
-          const signOutContainer = document.getElementById('sign-out-container');
-          const emailInput = document.getElementById('email');
-          if (signOutContainer) {
-            if (user) {
-              signOutContainer.innerHTML = `
-                <div class="auth-container">
-                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="profile-button">
-                    ${'Settings'}
-                  </button>
-                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-out-button">
-                    Sign Out
-                  </button>
+          <!-- Loading Overlay -->
+          <div id="loading-overlay" class="fixed inset-0 flex flex-col items-center justify-center z-50 hidden" 
+               style="background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);">
+            <div class="p-8 rounded-lg shadow-lg max-w-md w-full mx-4" 
+                 style="background: repeating-linear-gradient(0deg, rgba(235, 236, 255, 0.2) 0px, rgba(235, 236, 255, 0.2) 1px, transparent 1px, transparent 50px),
+                        repeating-linear-gradient(90deg, rgba(235, 236, 255, 0.2) 0px, rgba(235, 236, 255, 0.2) 1px, transparent 1px, transparent 50px),
+                        linear-gradient(to bottom, rgba(235, 236, 255, 0.97), rgba(220, 221, 255, 0.97));
+                        box-shadow: 0 0 30px rgba(200, 203, 248, 0.2);">
+                <div class="flex items-center justify-center mb-4">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                 </div>
-              `;
-              // Pre-fill and disable email input if user is logged in
-              if (emailInput) {
-                emailInput.value = user.primaryEmailAddress.emailAddress;
-                emailInput.setAttribute('readonly', 'readonly');
-              }
-              document.getElementById('profile-button').onclick = () => window.Clerk.openUserProfile();
-              document.getElementById('sign-out-button').onclick = async () => {
-                await window.Clerk.signOut();
-                document.getElementById('user-greeting').style.display = 'none';
-                document.getElementById('alerts-link').style.display = 'none';
-                document.getElementById('github-link').style.display = 'block';
-                document.getElementById('perplexity-link').style.display = 'block';
-                document.getElementById('contact-link').style.display = 'block';
-                window.location.href = '/';
-              };
-              // Show/hide elements based on authentication
-              document.getElementById('user-greeting').style.display = 'block';
-              document.getElementById('user-greeting').querySelector('span').textContent = `Hi, ${user.firstName || 'User'}!`;
-              document.getElementById('user-greeting').onclick = () => window.location.href = '/';
-              document.getElementById('alerts-link').style.display = 'block';
-              document.getElementById('github-link').style.display = 'none';
-              document.getElementById('perplexity-link').style.display = 'none';
-            } else {
-              signOutContainer.innerHTML = `
-                <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-in-button">Sign In</button>
-              `;
-              document.getElementById('sign-in-button').onclick = () => window.Clerk.openSignIn();
-              // Show/hide elements based on authentication
-              document.getElementById('user-greeting').style.display = 'none';
-              document.getElementById('alerts-link').style.display = 'none';
-              document.getElementById('github-link').style.display = 'block';
-              document.getElementById('perplexity-link').style.display = 'block';
-            }
-          }
-        });
-
-      } catch (err) {
-        console.error('Error initializing Clerk:', err);
-      }
-    }
-
-    // Wait for Clerk to be available
-    function waitForClerk() {
-      if (window.Clerk) {
-        initClerk();
-      } else {
-        setTimeout(waitForClerk, 100);
-      }
-    }
-
-    // Start waiting for Clerk when the page loads
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', waitForClerk);
-    } else {
-      waitForClerk();
-    }
-  </script>
-  <style>
-    /* Remove focus outline from Clerk components */
-    .cl-component * {
-      outline: none !important;
-    }
-    .cl-component *:focus {
-      outline: none !important;
-      box-shadow: none !important;
-    }
-
-    /* Auth button styles */
-    .auth-container {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    @keyframes shimmer {
-        0% {
-            transform: translateX(-100%);
-        }
-        100% {
-            transform: translateX(100%);
-        }
-    }
-
-    #loading-progress {
-        position: relative;
-        overflow: hidden;
-        background: linear-gradient(90deg, #0062ff, #147eff);
-        box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
-    }
-
-    #loading-progress::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        background: linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0) 0%,
-            rgba(255, 255, 255, 0.2) 50%,
-            rgba(255, 255, 255, 0) 100%
-        );
-        animation: shimmer 2s infinite;
-    }
-
-    /* Custom media query for perplexity link */
-    #perplexity-link {
-        display: none;
-    }
-
-    @media screen and (min-width: 768px) {
-        #perplexity-link {
-            display: block;
-        }
-    }
-
-    @media screen and (max-width: 767px) {
-        #perplexity-link {
-            display: none;
-        }
-    }
-  </style>
-
-<body class="cj90m c7e3b cisrt c7wkd c2gcs ce7fn clmvh">
-
-  <!-- Page wrapper -->
-  <div class="cbvui chs6j c8gx0 ckwv3 cjycj cezsk">
-
-    <!-- Bg coloured shapes -->
-    <div class="cwysf cs1uv cojlt c9v7h cvhgl cr8aa cetkn cag0k" aria-hidden="true">
-      <div class="c5bik c9b4s c0oy8 cmix3 cj04y ckrsz cje3v csstg cevtx cv8gl cyy6y cr8aa c98s8 c3yb8"></div>
-      <div class="cfwzm chupg c9b4s c0oy8 cmix3 cj04y ckrsz csstg c8m5q cevtx cv8gl cyy6y cr8aa cjgsx cnbs3 c3yb8">
-      </div>
-      <div class="csla3 chupg c9b4s c0oy8 cmix3 cj04y ckrsz csstg c8m5q cevtx cv8gl cyy6y cr8aa c110f c9hsq cggi5">
-      </div>
-      <div class="cs09d czbwe cd03c c9b4s c0oy8 cmix3 cj04y ckrsz csstg cevtx cv8gl cc2fz cyy6y cr8aa c8zmq cwoae">
-      </div>
-      <div class="cpxaw crjok c9b4s c0oy8 cmix3 cj04y ckrsz csstg c8m5q cevtx cv8gl cpsm9 cgtcx cc1h8 cr8aa c2svq">
-      </div>
-      <div class="c55mv cpvgd c9b4s c0oy8 cmix3 cj04y ckrsz csstg c8m5q cevtx cv8gl cc2fz cyy6y cr8aa cubdc cggi5">
-      </div>
-    </div>
-
-    <!-- Vertical lines -->
-    <div class="cwysf cs1uv cojlt c9v7h cvhgl cr8aa cag0k" aria-hidden="true">
-      <!-- Left side -->
-      <div class="c9dpd c30rf crc45 c06dl cd91y czb12 c2wd7 cd8xp cpue7 cevtx ch88u cr5hf cxgoq c6ppr cjkk2 chsmj">
-      </div>
-      <!-- Right side -->
-      <div class="c9dpd c30rf crc45 c06dl cd91y czb12 c2wd7 cd8xp cpue7 cevtx ch88u cr5hf cvq9r cxgoq cj85p c6ppr">
-      </div>
-    </div>
-
-    <!-- Site header -->
-    <header class="c9v3y crbyi c7hiy cvq6c cd5ux cr8aa cligc ctdcn coe0p crj7h c2dja casec">
-      <div class="cy6zq crh5c">
-        <div class="cpthp czrhe">
-          <div class="cvvig cba0k c04cg c45gv c5plh chwso cfctz ccjiw ckwv3 ckqfb cf0cr cezsk c2svq c02c5">
-
-            <!-- Border with dots in corners -->
-            <div
-              class="ch4rd cetk9 couhs c53q4 cehp5 chqy8 cukhb cx8c7 cippd crgvw c2z22 cv89o cr2ij cpue7 crc6r cevtx cr5hf cxgoq cjkk2 c1qs0 ckoug cpnw7 cr8aa cag0k"
-              aria-hidden="true"></div>
-
-            <!-- Site branding -->
-            <div class="ctuhr">
-              <!-- Logo -->
-              <a href="https://dub.sh/easywire">
-                <img src="./homepage_files/wings.png" width="32" height="32">
-              </a>
+                <h3 class="text-lg font-semibold text-center mb-4 text-gray-900">Processing Your Request</h3>
+                <div id="loading-status" class="text-sm text-gray-600 text-center mb-4">
+                    Processing...
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4 relative overflow-hidden">
+                    <div id="loading-progress" class="bg-blue-600 h-2.5 rounded-full transition-all duration-700 ease-in-out relative" style="width: 0%">
+                        <div class="absolute inset-0 bg-white/30 animate-[shimmer_2s_infinite]"></div>
+                    </div>
+                </div>
+                <div class="flex justify-center text-lg font-semibold text-center text-gray-900">
+                    <button onclick="window.location.href='/alerts'" class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5">Cancel</button>
+                </div>
             </div>
-
-            <!-- Navigation links -->
-            <nav class="c3927 cezsk">
-              <ul class="nav-list chwso cxpc2 cmj1h cc7et cezsk">
-                <li id="user-greeting" style="display: none;">
-                  <span class="cpvyo cv7b2 cj90m c2gcs ccjiw cjnro c02c5"></span>
-                </li>
-                <li id="alerts-link" style="display: none;">
-                  <a class="cpvyo cv7b2 cj90m c2gcs ccjiw cjnro c02c5" href="/alerts">Your Alerts</a>
-                </li>
-                <li id="github-link">
-                  <a class="cpvyo cv7b2 cj90m c2gcs ccjiw cjnro c02c5" href="https://git.new/easywire">GitHub</a>
-                </li>
-                <li id="perplexity-link">
-                  <a class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5"
-                    href="https://www.perplexity.ai/page/what-is-aryan-keluskar-working-MeaaCWPpQD.GlLF_gMKiLA">Perplexity</a>
-                </li>
-                <!-- <li>
-                  <a class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5"
-                    href="mailto:aryankeluskar6@gmail.com">Contact</a>
-                </li> -->
-                <li id="sign-out-container">
-                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-in-button">Sign In</button>
-                </li>
-              </ul>
-            </nav>
-
-            <!-- Dark / Light mode toggle -->
-            <div class="chso3 ctuhr cezsk">
-              <input type="checkbox" name="light-switch" id="light-switch" class="light-switch cz99u">
-              <label class="c9yqy co456" for="light-switch">
-                <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">
-                  <path class="cdp5p crwfp"
-                    d="M9 0H7v2h2V0ZM14.294 3.052 12.88 1.637 11.466 3.05l1.413 1.414 1.415-1.413ZM16 7h-2v2h2V7ZM11.535 13.02l1.415 1.413 1.414-1.415-1.415-1.413-1.414 1.414ZM9 14H7v2h2v-2ZM1.566 12.948l1.414 1.415 1.415-1.413-1.414-1.415-1.415 1.413ZM2 7H0v2h2V7ZM4.465 3.12 3.05 1.707 1.636 3.12l1.415 1.414L4.465 3.12Z">
-                  </path>
-                  <path class="c7cme cksqw" d="M8 4C5.8 4 4 5.8 4 8s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4Z"></path>
-                </svg>
-                <span class="cz99u">Switch to light / dark version</span>
-              </label>
-            </div>
-
           </div>
         </div>
       </div>
-    </header>
-
-    <!-- Page content -->
-    <main class="cgnjb">
-
-      <section>
-        <div class="c5fcz cnmmr cg498 cw2nq">
-          <div class="cy6zq crh5c">
-
-            <div class="cpthp czrhe cs10o">
-              <div class="c9pd1">
-
-                <h1 class="c0cnt ce627 cwr74 cfatl crlpf cbwmu c2gcs cr5d0 cvxf3 ch47f casec" style="font-size: 2rem; margin-bottom: 1rem;">your alerts</h1>
-                <!-- <p class="cauea cgrfs cs94t" style="max-width: 600px; margin: 0 auto; text-align: justify; text-align-last: center; line-height: 1.5;">
-                  <b>Never lose to currency fluctuations ever again.</b> <br>
-                  Uses technical and sentiment analysis to save you from over-paying for global
-                  transactions. You simply enter an amount, set a deadline for transfer, and get
-                  an email notification whenever the exchange rate is the most optimal. <b>Try it
-                  out today!</b>
-                </p> -->
-
-              </div>
-            </div>
-
-            <div class="c1t8r c330t cfs2v c1upr c2wd7 cl110 cd8xp ctanz cqckm conig cc8zc c0zgo c3927 ciay6 c7a79 chwso clw5z cjewx ckwv3 cgio7 c9l48 cezsk" style="width: 80vw; margin: 0 auto;">
-              <div class="cgc2y c81ef czrhe coe0p" style="max-width: 100vw;">
-                <!-- Border with dots in corners -->
-                <div class="cq4r1 cfdqj ck5ws c5pov cehp5 chqy8 cym3j cxpxq cvvig c0cnt cba0k crgvw ci2tu c2z22 csmr0 cr2ij cpue7 c26dl cevtx cr5hf cxgoq cjkk2 c1qs0 ccjiw cr8aa clot7 cag0k" aria-hidden="true"></div>
-                
-                <div class="relative overflow-x-auto cacgm">
-                  <table class="w-full text-sm text-left">
-                    <thead class="text-xs uppercase">
-                      <tr>
-                        <th scope="col" class="px-6 py-3">
-                          <input type="checkbox" id="select-all" class="coyoz cc7et coe0p cyujy cjygq rounded-none">
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-lg font-bold text-gray-900 dark:text-white">Date Posted</th>
-                        <th scope="col" class="px-6 py-3 text-lg font-bold text-gray-900 dark:text-white">Deadline Date</th>
-                        <th scope="col" class="px-6 py-3 text-lg font-bold text-gray-900 dark:text-white">From Currency</th>
-                        <th scope="col" class="px-6 py-3 text-lg font-bold text-gray-900 dark:text-white">To Currency</th>
-                        <th scope="col" class="px-6 py-3 text-lg font-bold text-gray-900 dark:text-white">Value</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% if alerts %}
-                        {% for alert in alerts %}
-                        <tr class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors" 
-                            data-alert-id="{{ alert._id }}"
-                            onclick="handleRowClick(this)"
-                            data-from-currency="{{ alert.from_currency }}"
-                            data-to-currency="{{ alert.to_currency }}"
-                            data-amount="{{ alert.amount }}">
-                          <td class="px-6 py-4 w-10 h-10" onclick="event.stopPropagation()">
-                            <input type="checkbox" class="alert-checkbox coyoz cc7et coe0p cyujy cjygq">
-                          </td>
-                          <td class="px-6 py-4 text-base text-gray-900 dark:text-gray-100">{{ alert.created_at.strftime('%Y-%m-%d') }}</td>
-                          <td class="px-6 py-4 text-base text-gray-900 dark:text-gray-100">{{ alert.target_date.strftime('%Y-%m-%d') }}</td>
-                          <td class="px-6 py-4 text-base text-gray-900 dark:text-gray-100">{{ alert.from_currency }}</td>
-                          <td class="px-6 py-4 text-base text-gray-900 dark:text-gray-100">{{ alert.to_currency }}</td>
-                          <td class="px-6 py-4 text-base text-gray-900 dark:text-gray-100">{{ "%.2f"|format(alert.amount) }}</td>
-                        </tr>
-                        {% endfor %}
-                      {% else %}
-                        <tr>
-                          <td colspan="6" class="px-6 py-4 text-center text-base text-gray-900 dark:text-gray-100">
-                            No alerts found. Create one from the home page!
-                          </td>
-                        </tr>
-                      {% endif %}
-                    </tbody>
-                  </table>
-                  <div id="delete-button-container" class="mt-4 text-center hidden">
-                    <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5 bg-red-500 hover:bg-red-600">Delete Selected</button>
-                  </div>
-                </div>
-
-                <!-- Loading Overlay -->
-                <div id="loading-overlay" class="fixed inset-0 flex flex-col items-center justify-center z-50 hidden" 
-                     style="background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);">
-                  <div class="p-8 rounded-lg shadow-lg max-w-md w-full mx-4" 
-                       style="background: repeating-linear-gradient(0deg, rgba(235, 236, 255, 0.2) 0px, rgba(235, 236, 255, 0.2) 1px, transparent 1px, transparent 50px),
-                              repeating-linear-gradient(90deg, rgba(235, 236, 255, 0.2) 0px, rgba(235, 236, 255, 0.2) 1px, transparent 1px, transparent 50px),
-                              linear-gradient(to bottom, rgba(235, 236, 255, 0.97), rgba(220, 221, 255, 0.97));
-                              box-shadow: 0 0 30px rgba(200, 203, 248, 0.2);">
-                      <div class="flex items-center justify-center mb-4">
-                          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                      </div>
-                      <h3 class="text-lg font-semibold text-center mb-4 text-gray-900">Processing Your Request</h3>
-                      <div id="loading-status" class="text-sm text-gray-600 text-center mb-4">
-                          Processing...
-                      </div>
-                      <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4 relative overflow-hidden">
-                          <div id="loading-progress" class="bg-blue-600 h-2.5 rounded-full transition-all duration-700 ease-in-out relative" style="width: 0%">
-                              <div class="absolute inset-0 bg-white/30 animate-[shimmer_2s_infinite]"></div>
-                          </div>
-                      </div>
-                      <div class="flex justify-center text-lg font-semibold text-center text-gray-900">
-                          <button onclick="window.location.href='/alerts'" class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5">Cancel</button>
-                      </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-            
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer
-      class="mt-20 w-full md:flex overflow-y-hidden items-center justify-between gap-4 px-800 py-8 text-sm text-zinc-500 overflow-hidden text-center">
-      <p style="padding-left: 50px!important; padding-right: 50px!important;">© 2025 Aryan Keluskar</p>
-
-      <div class="flex gap-5 justify-around my-2" style="justify-content: center;"><a
-          class="group/mail flex items-center" target="_blank" href="mailto:aryankeluskar6@gmail.com">Contact<svg
-            class="group-hover/mail:opacity-100 opacity-0 transition hidden md:block" width="24px" height="24px"
-            viewBox="-2.4 -2.4 28.80 28.80" fill="none" xmlns="http://www.w3.org/2000/svg"
-            transform="matrix(1, 0, 0, 1, 0, 0)rotate(0)">
-            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-            <g id="SVGRepo_iconCarrier">
-              <path d="M7 17L17 7M17 7H8M17 7V16" stroke="currentColor" stroke-width="0.792" stroke-linecap="round"
-                stroke-linejoin="round"></path>
-            </g>
-          </svg></a>
-          
-          <a class="group/twit flex items-center" target="_blank"
-          href="https://twitter.com/aryankeluskar6">Twitter<!-- --> <svg
-            class="group-hover/twit:opacity-100 opacity-0 transition hidden md:block" width="24px" height="24px"
-            viewBox="-2.4 -2.4 28.80 28.80" fill="none" xmlns="http://www.w3.org/2000/svg"
-            transform="matrix(1, 0, 0, 1, 0, 0)rotate(0)">
-            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-            <g id="SVGRepo_iconCarrier">
-              <path d="M7 17L17 7M17 7H8M17 7V16" stroke="currentColor" stroke-width="0.792" stroke-linecap="round"
-                stroke-linejoin="round"></path>
-            </g>
-          </svg></a>
-
-          <a class="group/twit flex items-center hidden md:flex" target="_blank"
-          href="https://www.perplexity.ai/page/what-is-aryan-keluskar-working-MeaaCWPpQD.GlLF_gMKiLA">Perplexity<!-- --> <svg
-            class="group-hover/twit:opacity-100 opacity-0 transition hidden md:block" width="24px" height="24px"
-            viewBox="-2.4 -2.4 28.80 28.80" fill="none" xmlns="http://www.w3.org/2000/svg"
-            transform="matrix(1, 0, 0, 1, 0, 0)rotate(0)">
-            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-            <g id="SVGRepo_iconCarrier">
-              <path d="M7 17L17 7M17 7H8M17 7V16" stroke="currentColor" stroke-width="0.792" stroke-linecap="round"
-                stroke-linejoin="round"></path>
-            </g>
-          </svg></a>
-          
-          <a class="group/git flex items-center" target="_blank"
-          href="https://github.com/aryankeluskar">GitHub<!-- --> <svg
-            class="group-hover/git:opacity-100 opacity-0 transition hidden md:block" width="24px" height="24px"
-            viewBox="-2.4 -2.4 28.80 28.80" fill="none" xmlns="http://www.w3.org/2000/svg"
-            transform="matrix(1, 0, 0, 1, 0, 0)rotate(0)">
-            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-            <g id="SVGRepo_iconCarrier">
-              <path d="M7 17L17 7M17 7H8M17 7V16" stroke="currentColor" stroke-width="0.792" stroke-linecap="round"
-                stroke-linejoin="round"></path>
-            </g>
-          </svg></a><a class="group/git flex items-center" target="_blank" style="padding-right: 25px!important;"
-          href="">DataFlow
-           <svg class="group-hover/git:opacity-100 opacity-0 transition hidden md:block" width="24px"
-            height="24px" viewBox="-2.4 -2.4 28.80 28.80" fill="none" xmlns="http://www.w3.org/2000/svg"
-            transform="matrix(1, 0, 0, 1, 0, 0)rotate(0)">
-            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-            <g id="SVGRepo_iconCarrier">
-              <path d="M7 17L17 7M17 7H8M17 7V16" stroke="currentColor" stroke-width="0.792" stroke-linecap="round"
-                stroke-linejoin="round"></path>
-            </g>
-          </svg></a>
-
-      </div>
-
-
-    </footer>
-
+    </div>
   </div>
+</section>
+{% endblock %}
 
-  <script src="./homepage_files/alpinejs.min.js" defer=""></script>
-  <script src="./homepage_files/main.js"></script>
+{% block extra_scripts %}
+<script>
+  const userEmail = "{{ user_email if user_email else '' }}";
+  if (!userEmail) {
+    alert("User email not found. Showing all alerts. Please sign in to see only your alerts.");
+  }
 
-  <script>
-    const userEmail = "{{ user_email if user_email else '' }}";
-    if (!userEmail) {
-      alert("User email not found. Showing all alerts. Please sign in to see only your alerts.");
+  async function handleRowClick(row) {
+    const fromCurrency = row.dataset.fromCurrency;
+    const toCurrency = row.dataset.toCurrency;
+    const amount = row.dataset.amount;
+
+    // Show loading overlay
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingStatus = document.getElementById('loading-status');
+    const loadingProgress = document.getElementById('loading-progress');
+    loadingOverlay.classList.remove('hidden');
+
+    try {
+      // Function to update loading status
+      const updateLoadingStatus = (message, progress) => {
+        loadingStatus.textContent = message;
+        loadingProgress.style.width = `${progress}%`;
+      };
+
+      updateLoadingStatus('Processing request...', 40);
+      
+      // Redirect to success page
+      window.location.href = `/success?from_curr=${fromCurrency}&to_curr=${toCurrency}`;
+
+    } catch (error) {
+      console.error('Error:', error);
+      updateLoadingStatus('An error occurred. Please try again.', 100);
+      
+      // Hide loading overlay after error
+      setTimeout(() => {
+        loadingOverlay.classList.add('hidden');
+      }, 2000);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('select-all');
+    const alertCheckboxes = document.querySelectorAll('.alert-checkbox');
+    const deleteButtonContainer = document.getElementById('delete-button-container');
+
+    // Function to check if any checkbox is selected
+    function updateDeleteButton() {
+      const anyChecked = Array.from(alertCheckboxes).some(checkbox => checkbox.checked);
+      deleteButtonContainer.classList.toggle('hidden', !anyChecked);
+      // Update select all checkbox state
+      selectAllCheckbox.checked = alertCheckboxes.length > 0 && Array.from(alertCheckboxes).every(cb => cb.checked);
     }
 
-    function file_uploaded() {
-      var file = document.getElementById('dropzone-file').files[0];
-      document.getElementById('dropzone-text-left').innerText = 'Thank you';
-      document.getElementById('dropzone-text-right').innerText = 'for uploading!';
-      document.getElementById('dropzone-text-bottom').innerText = file.name;
-    }
-
-    // Currency selection handling
-    document.addEventListener('DOMContentLoaded', function() {
-      const fromCurrency = document.getElementById('from_currency');
-      const toCurrency = document.getElementById('to_currency');
-      const allOptions = Array.from(fromCurrency.options).slice(1); // Skip the placeholder option
-
-      fromCurrency.addEventListener('change', function() {
-        const selectedValue = fromCurrency.value;
-        
-        // Reset to currency dropdown
-        toCurrency.innerHTML = '<option value="" disabled selected>To...</option>';
-        
-        // Add all options except the selected one
-        allOptions.forEach(option => {
-          if (option.value !== selectedValue) {
-            toCurrency.add(option.cloneNode(true));
-          }
-        });
-
-        // Enable the to currency dropdown
-        toCurrency.disabled = false;
+    // Select all checkbox functionality
+    selectAllCheckbox.addEventListener('change', function() {
+      alertCheckboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
       });
-
-      // Disable to currency initially until from currency is selected
-      toCurrency.disabled = true;
+      updateDeleteButton();
     });
-  </script>
 
-  <style>
-@keyframes shimmer {
-    0% {
-        transform: translateX(-100%);
-    }
-    100% {
-        transform: translateX(100%);
-    }
-}
-
-#loading-progress {
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(90deg, #0062ff, #147eff);
-    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
-}
-
-#loading-progress::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    background: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.2) 50%,
-        rgba(255, 255, 255, 0) 100%
-    );
-    animation: shimmer 2s infinite;
-}
-</style>
-
-  <script>
-    // Testing configuration
-    const isTestingLoadingScreen = false; 
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('transaction-form');
-        const loadingOverlay = document.getElementById('loading-overlay');
-        const loadingStatus = document.getElementById('loading-status');
-        const loadingProgress = document.getElementById('loading-progress');
-        const submitButton = form.querySelector('button[type="submit"]');
-
-        const updateLoadingStatus = (message, progress) => {
-            loadingStatus.textContent = message;
-            loadingProgress.style.width = `${progress}%`;
-        };
-
-
-        // If in testing mode, show loading screen immediately
-        if (isTestingLoadingScreen) {
-            // Disable submit button
-            submitButton.disabled = true;
-            submitButton.classList.add('opacity-50', 'cursor-not-allowed');
-            
-            // Show loading overlay
-            loadingOverlay.classList.remove('hidden');
-            
-            // Simulate progress updates
-            updateLoadingStatus('Validating transaction details...', 20);
-            setTimeout(() => updateLoadingStatus('Processing currency data...', 40), 1000);
-            setTimeout(() => updateLoadingStatus('Analyzing exchange rates...', 60), 2000);
-            setTimeout(() => updateLoadingStatus('Finalizing transaction...', 80), 3000);
-            setTimeout(() => updateLoadingStatus('Test mode: Loading screen visible', 100), 4000);
-        }
-
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            // Disable submit button
-            submitButton.disabled = true;
-            submitButton.classList.add('opacity-50', 'cursor-not-allowed');
-            
-            // Show loading overlay
-            loadingOverlay.classList.remove('hidden');
-            
-            // Simulate progress updates
-            updateLoadingStatus('Validating transaction details...', 20);
-            
-            try {
-                const formData = new FormData(form);
-                
-                setTimeout(() => updateLoadingStatus('Processing currency data...', 40), 1000);
-                setTimeout(() => updateLoadingStatus('Analyzing exchange rates...', 60), 2000);
-                setTimeout(() => updateLoadingStatus('Finalizing transaction...', 80), 3000);
-                
-                // If in testing mode, don't submit the form
-                if (isTestingLoadingScreen) {
-                    console.log('Testing mode: Loading screen will remain visible');
-                    setTimeout(() => updateLoadingStatus('Test mode: Loading screen visible', 100), 4000);
-                    return; // Stop here in testing mode
-                }
-                
-                const response = await fetch('/data', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (response.redirected) {
-                    updateLoadingStatus('Redirecting to success page...', 100);
-                    window.location.href = response.url;
-                } else {
-                    const html = await response.text();
-                    document.documentElement.innerHTML = html;
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                updateLoadingStatus('An error occurred. Please try again.', 100);
-                
-                // Re-enable submit button on error
-                submitButton.disabled = false;
-                submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
-                
-                // Hide loading overlay after a short delay if not in testing mode
-                if (!isTestingLoadingScreen) {
-                    setTimeout(() => {
-                        loadingOverlay.classList.add('hidden');
-                    }, 2000);
-                }
-            }
-        });
+    // Individual checkbox functionality
+    alertCheckboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', updateDeleteButton);
     });
-  </script>
 
-  <script>
-    async function handleRowClick(row) {
-      const fromCurrency = row.dataset.fromCurrency;
-      const toCurrency = row.dataset.toCurrency;
-      const amount = row.dataset.amount;
+    // Initialize button state
+    updateDeleteButton();
+
+    // Add delete button click handler
+    const deleteButton = deleteButtonContainer.querySelector('button');
+    deleteButton.addEventListener('click', async function() {
+      const selectedIds = Array.from(alertCheckboxes)
+        .filter(checkbox => checkbox.checked)
+        .map(checkbox => checkbox.closest('tr').dataset.alertId);
+
+      if (selectedIds.length === 0) return;
 
       // Show loading overlay
       const loadingOverlay = document.getElementById('loading-overlay');
@@ -648,118 +180,48 @@
       loadingOverlay.classList.remove('hidden');
 
       try {
-        // Function to update loading status
-        const updateLoadingStatus = (message, progress) => {
-          loadingStatus.textContent = message;
-          loadingProgress.style.width = `${progress}%`;
-        };
-
-        updateLoadingStatus('Processing request...', 40);
-        
-        // Redirect to success page
-        window.location.href = `/success?from_curr=${fromCurrency}&to_curr=${toCurrency}`;
-
-      } catch (error) {
-        console.error('Error:', error);
-        updateLoadingStatus('An error occurred. Please try again.', 100);
-        
-        // Hide loading overlay after error
-        setTimeout(() => {
-          loadingOverlay.classList.add('hidden');
-        }, 2000);
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-      const selectAllCheckbox = document.getElementById('select-all');
-      const alertCheckboxes = document.querySelectorAll('.alert-checkbox');
-      const deleteButtonContainer = document.getElementById('delete-button-container');
-
-      // Function to check if any checkbox is selected
-      function updateDeleteButton() {
-        const anyChecked = Array.from(alertCheckboxes).some(checkbox => checkbox.checked);
-        deleteButtonContainer.classList.toggle('hidden', !anyChecked);
-        // Update select all checkbox state
-        selectAllCheckbox.checked = alertCheckboxes.length > 0 && Array.from(alertCheckboxes).every(cb => cb.checked);
-      }
-
-      // Select all checkbox functionality
-      selectAllCheckbox.addEventListener('change', function() {
-        alertCheckboxes.forEach(checkbox => {
-          checkbox.checked = this.checked;
+        const response = await fetch('/delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ids: selectedIds })
         });
-        updateDeleteButton();
-      });
 
-      // Individual checkbox functionality
-      alertCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateDeleteButton);
-      });
-
-      // Initialize button state
-      updateDeleteButton();
-
-      // Add delete button click handler
-      const deleteButton = deleteButtonContainer.querySelector('button');
-      deleteButton.addEventListener('click', async function() {
-        const selectedIds = Array.from(alertCheckboxes)
-          .filter(checkbox => checkbox.checked)
-          .map(checkbox => checkbox.closest('tr').dataset.alertId);
-
-        if (selectedIds.length === 0) return;
-
-        // Show loading overlay
-        const loadingOverlay = document.getElementById('loading-overlay');
-        const loadingStatus = document.getElementById('loading-status');
-        const loadingProgress = document.getElementById('loading-progress');
-        loadingOverlay.classList.remove('hidden');
-
-        try {
-          const response = await fetch('/delete', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ ids: selectedIds })
+        if (response.ok) {
+          // Remove deleted rows from the table
+          selectedIds.forEach(id => {
+            const row = document.querySelector(`tr[data-alert-id="${id}"]`);
+            if (row) row.remove();
           });
 
-          if (response.ok) {
-            // Remove deleted rows from the table
-            selectedIds.forEach(id => {
-              const row = document.querySelector(`tr[data-alert-id="${id}"]`);
-              if (row) row.remove();
-            });
-
-            // Update UI state
-            updateDeleteButton();
-            
-            // If no alerts left, show the "No alerts" message
-            const tbody = document.querySelector('tbody');
-            if (!tbody.querySelector('tr')) {
-              tbody.innerHTML = `
-                <tr>
-                  <td colspan="6" class="px-6 py-4 text-center text-base text-gray-900 dark:text-gray-100">
-                    No alerts found. Create one from the home page!
-                  </td>
-                </tr>
-              `;
-            }
-          } else {
-            throw new Error('Failed to delete alerts');
+          // Update UI state
+          updateDeleteButton();
+          
+          // If no alerts left, show the "No alerts" message
+          const tbody = document.querySelector('tbody');
+          if (!tbody.querySelector('tr')) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="6" class="px-6 py-4 text-center text-base text-gray-900 dark:text-gray-100">
+                  No alerts found. Create one from the home page!
+                </td>
+              </tr>
+            `;
           }
-        } catch (error) {
-          console.error('Error:', error);
-          loadingStatus.textContent = 'An error occurred. Please try again.';
-        } finally {
-          // Hide loading overlay after a short delay
-          setTimeout(() => {
-            loadingOverlay.classList.add('hidden');
-          }, 1000);
+        } else {
+          throw new Error('Failed to delete alerts');
         }
-      });
+      } catch (error) {
+        console.error('Error:', error);
+        loadingStatus.textContent = 'An error occurred. Please try again.';
+      } finally {
+        // Hide loading overlay after a short delay
+        setTimeout(() => {
+          loadingOverlay.classList.add('hidden');
+        }, 1000);
+      }
     });
-  </script>
-
-</body>
-
-</html>
+  });
+</script>
+{% endblock %}

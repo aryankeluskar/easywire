@@ -104,21 +104,25 @@ templates = Jinja2Templates(directory=templates_dir)
 VALID_CURRENCIES = {'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'INR', 'NZD'}
 
 @app.get("/")
-async def root():
-    r"""
+async def root(request: Request):
+    """
     ### Root Endpoint
-    A function that serves the root endpoint of the API. It returns a FileResponse object that
-    represents the "home.html" file located in the "templates" directory. This function is
-    decorated with the `@app.get("/")` decorator, which means it will handle GET requests to the
-    root URL ("/").
+    A function that serves the root endpoint of the API. It returns a TemplateResponse object that
+    renders the "home.html" template. This function is decorated with the `@app.get("/")` decorator,
+    which means it will handle GET requests to the root URL ("/").
     ---
     Returns:
-        FileResponse: A FileResponse object representing the "home.html" file.
+        TemplateResponse: A TemplateResponse object rendering the "home.html" template.
     """
     
     print(f"Serving template from: {os.path.join(templates_dir, 'home.html')}")
 
-    return FileResponse(os.path.join(templates_dir, 'home.html'))
+    return templates.TemplateResponse(
+        "home.html",
+        {
+            "request": request
+        }
+    )
 
 
 @app.post("/data")
