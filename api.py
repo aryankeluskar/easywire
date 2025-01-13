@@ -351,13 +351,18 @@ async def get_user(auth = Depends(require_auth)):
     })
 
 @app.get("/alerts")
-async def alerts(request: Request):
+async def alerts(request: Request, user: dict = Depends(get_auth_user)):
     """
     Endpoint to display user's currency alerts
     """
+    # If user is not authenticated, redirect to home page
+    if not user:
+        return RedirectResponse(url="/", status_code=303)
+        
     try:
-        # Get all alerts from MongoDB
-        alerts_list = list(alerts_collection.find().sort("created_at", -1))
+        # Get only the alerts for the current user's email
+        user_email = user.email_addresses[0].email_address
+        alerts_list = list(alerts_collection.find({"email": user_email}).sort("created_at", -1))
         
         # Convert ObjectId to string for each alert
         for alert in alerts_list:
