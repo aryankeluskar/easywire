@@ -56,7 +56,7 @@ async def get_auth_user(request: Request):
             
     try:
         print("Verifying session with Clerk...")
-        session = clerk.sessions.verify(session_token)
+        session = clerk.sessions.verify(token=session_token)
         print("Session verified, user ID:", session.user_id)
         user = clerk.users.get(session.user_id)
         print("User retrieved from Clerk")
