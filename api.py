@@ -67,7 +67,7 @@ async def get_auth_user(request: Request):
             return None
             
         # Get user directly using the ID from the token
-        user = clerk.users.get(user_id)
+        user = clerk.users.get(user_id=user_id)
         print("User retrieved from Clerk")
         return user
     except Exception as e:
