@@ -9,6 +9,48 @@
 </p>
 
 
+## 🔍 Monitoring System
+
+The monitoring system continuously tracks exchange rates and sends notifications when optimal rates are detected. It uses Alpha Vantage API for real-time forex data and implements rate limiting to stay within API constraints.
+
+### Monitoring Logs
+
+Each monitoring job execution is logged with the following structure:
+
+```json
+{
+    "timestamp": "<UTC timestamp when job started>",
+    "status": "<completed|error>",
+    "message": "<descriptive message>",
+    "alerts_processed": "<number of alerts processed>",
+    "results": [
+        {
+            "alert_id": "<alert_id>",
+            "status": "<notification_sent|rate_not_optimal|error>",
+            "current_rate": "<rate>",
+            "error": "<error message if status is error>"
+        }
+    ],
+    "duration_seconds": "<execution time in seconds>"
+}
+```
+
+### Features
+
+- **Rate Limiting**: Implements a sliding window rate limiter for Alpha Vantage API (5 calls per minute)
+- **Lock Mechanism**: Prevents multiple monitoring processes from running simultaneously
+- **Historical Data**: Maintains 7-day rate history for trend analysis
+- **Sentiment Analysis**: Analyzes news sentiment to improve rate optimization decisions
+- **Email Notifications**: Sends HTML-formatted alerts when optimal rates are detected
+- **Error Handling**: Comprehensive error handling and logging for debugging
+
+### Optimization Logic
+
+Rate is considered optimal when either:
+1. Current rate is better than 7-day average by more than 1 standard deviation
+2. Rate is moderately good (>0.5 std dev better than average) AND news sentiment is positive
+
+
 
 
 ## 🚀 Quickstart
