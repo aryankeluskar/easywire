@@ -250,7 +250,7 @@ async def fetch_forex_data(from_currency: str, to_currency: str):
 
 @app.get("/favicon.ico")
 async def favicon():
-    return FileResponse("favicon.ico")
+    return FileResponse(os.path.join(templates_dir, "favicon.ico"))
 
 @app.get("/success")
 async def success(request: Request, from_curr: str, to_curr: str, user = Depends(get_auth_user)):
