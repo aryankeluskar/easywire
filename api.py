@@ -50,7 +50,7 @@ async def get_auth_user(request: Request):
             return None
             
     try:
-        session = clerk.sessions.verify_session(session_token)
+        session = clerk.sessions.verify(session_token)
         user = clerk.users.get(session.user_id)
         return user
     except Exception as e:
@@ -365,6 +365,18 @@ async def alerts(request: Request, user = Depends(get_auth_user)):
     Endpoint to display user's currency alerts
     """
     try:
+        # Debug logging
+        print("User object:", user)
+        if user:
+            print("User ID:", getattr(user, 'id', None))
+            print("User email addresses:", getattr(user, 'email_addresses', None))
+            if hasattr(user, 'email_addresses') and user.email_addresses:
+                print("Primary email:", user.email_addresses[0].email_address)
+            print("User first name:", getattr(user, 'first_name', None))
+            print("User last name:", getattr(user, 'last_name', None))
+        else:
+            print("No user object received")
+
         # Get user email from Clerk user object
         user_email = None
         if user and hasattr(user, 'email_addresses') and user.email_addresses:
