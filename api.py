@@ -15,6 +15,7 @@ from pymongo import MongoClient
 import socket
 import hashlib
 import aiohttp
+import jwt
 
 load_dotenv()
 
@@ -56,7 +57,16 @@ async def get_auth_user(request: Request):
             
     try:
         print("Verifying session with Clerk...")
-        session = clerk.sessions.verify(token=session_token)
+        # Decode the JWT to get the session ID
+        decoded = jwt.decode(session_token, options={"verify_signature": False})
+        session_id = decoded.get('sid')
+        print("Session ID from token:", session_id)
+        
+        if not session_id:
+            print("No session ID found in token")
+            return None
+            
+        session = clerk.sessions.verify(session_id=session_id)
         print("Session verified, user ID:", session.user_id)
         user = clerk.users.get(session.user_id)
         print("User retrieved from Clerk")
