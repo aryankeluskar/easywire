@@ -360,17 +360,18 @@ async def get_user(auth = Depends(require_auth)):
     })
 
 @app.get("/alerts")
-async def alerts(request: Request, user: dict = Depends(get_auth_user)):
+async def alerts(request: Request, user = Depends(get_auth_user)):
     """
     Endpoint to display user's currency alerts
     """
     try:
-        # Try to get user email, if not available show all alerts with a console warning
+        # Get user email from Clerk user object
         user_email = None
-        if user and hasattr(user, 'email_addresses') and len(user.email_addresses) > 0:
+        if user and hasattr(user, 'email_addresses') and user.email_addresses:
             user_email = user.email_addresses[0].email_address
             alerts_list = list(alerts_collection.find({"email": user_email}).sort("created_at", -1))
         else:
+            print("User email not found. Showing all alerts. Please sign in to see only your alerts.")
             alerts_list = []
             
         # Convert ObjectId to string for each alert
