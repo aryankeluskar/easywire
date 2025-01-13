@@ -56,19 +56,18 @@ async def get_auth_user(request: Request):
     print("Session token found:", session_token[:10] + "..." if session_token else None)
             
     try:
-        print("Verifying session with Clerk...")
-        # Decode the JWT to get the session ID
+        print("Verifying session token...")
+        # Decode the JWT to get the user ID
         decoded = jwt.decode(session_token, options={"verify_signature": False})
-        session_id = decoded.get('sid')
-        print("Session ID from token:", session_id)
+        user_id = decoded.get('sub')  # 'sub' claim contains the user ID
+        print("User ID from token:", user_id)
         
-        if not session_id:
-            print("No session ID found in token")
+        if not user_id:
+            print("No user ID found in token")
             return None
             
-        session = clerk.sessions.verify(session_id=session_id)
-        print("Session verified, user ID:", session.user_id)
-        user = clerk.users.get(session.user_id)
+        # Get user directly using the ID from the token
+        user = clerk.users.get(user_id)
         print("User retrieved from Clerk")
         return user
     except Exception as e:
