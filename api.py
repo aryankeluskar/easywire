@@ -41,17 +41,25 @@ async def get_auth_user(request: Request):
     # Check for Clerk session token in cookies
     # First try __session, then __client
     session_token = request.cookies.get('__session') or request.cookies.get('__client')
+    print("Cookies:", request.cookies)
     if not session_token:
         # Also check Authorization header
         auth_header = request.headers.get('Authorization')
+        print("Authorization header:", auth_header)
         if auth_header and auth_header.startswith('Bearer '):
             session_token = auth_header.split(' ')[1]
         else:
+            print("No session token found in cookies or Authorization header")
             return None
+    
+    print("Session token found:", session_token[:10] + "..." if session_token else None)
             
     try:
+        print("Verifying session with Clerk...")
         session = clerk.sessions.verify(session_token)
+        print("Session verified, user ID:", session.user_id)
         user = clerk.users.get(session.user_id)
+        print("User retrieved from Clerk")
         return user
     except Exception as e:
         print(f"Auth error: {str(e)}")
