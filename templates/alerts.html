@@ -83,6 +83,7 @@
               // Show/hide elements based on authentication
               document.getElementById('user-greeting').style.display = 'block';
               document.getElementById('user-greeting').querySelector('span').textContent = `Hi, ${user.firstName || 'User'}!`;
+              document.getElementById('user-greeting').onclick = () => window.location.href = '/';
               document.getElementById('alerts-link').style.display = 'block';
               document.getElementById('github-link').style.display = 'none';
               document.getElementById('perplexity-link').style.display = 'none';
@@ -253,10 +254,10 @@
                   <a class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5"
                     href="https://www.perplexity.ai/page/what-is-aryan-keluskar-working-MeaaCWPpQD.GlLF_gMKiLA">Perplexity</a>
                 </li>
-                <li>
+                <!-- <li>
                   <a class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5"
                     href="mailto:aryankeluskar6@gmail.com">Contact</a>
-                </li>
+                </li> -->
                 <li id="sign-out-container">
                   <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-in-button">Sign In</button>
                 </li>
