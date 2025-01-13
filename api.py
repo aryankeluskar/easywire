@@ -38,14 +38,23 @@ app.add_middleware(
 
 # Clerk authentication middleware
 async def get_auth_user(request: Request):
-    session_token = request.cookies.get('__session')
+    # Check for Clerk session token in cookies
+    # First try __session, then __client
+    session_token = request.cookies.get('__session') or request.cookies.get('__client')
     if not session_token:
-        return None
+        # Also check Authorization header
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            session_token = auth_header.split(' ')[1]
+        else:
+            return None
+            
     try:
         session = clerk.sessions.verify_session(session_token)
         user = clerk.users.get(session.user_id)
         return user
-    except:
+    except Exception as e:
+        print(f"Auth error: {str(e)}")
         return None
 
 # Protected route dependency
