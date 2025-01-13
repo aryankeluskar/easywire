@@ -1,6 +1,7 @@
+
 <p align="center">
-  <a href="https://github.com/edcomposer">
-    <h2 align="center">EasyWire - Optimize Global Transactions 🌎</h2>
+  <a href="https://dub.sh/easywire">
+    <h2 align="center">EasyWire - Optimize Your Global Transactions 💸</h2>
   </a>
 </p>
 
@@ -9,7 +10,8 @@
 </p>
 
 
-## 🔍 Monitoring System
+
+## 🔍 Custom Monitoring System
 
 The monitoring system continuously tracks exchange rates and sends notifications when optimal rates are detected. It uses Alpha Vantage API for real-time forex data and implements rate limiting to stay within API constraints. It is hosted on [cron-job.org](cron-job.org) and runs every 60 minutes.
 
@@ -38,10 +40,10 @@ Each monitoring job execution is logged in MongoDB Atlas with the following stru
 ### Features
 
 - **Rate Limiting**: Implements a sliding window rate limiter for Alpha Vantage API (5 calls per minute)
-- **Lock Mechanism**: Prevents multiple monitoring processes from running simultaneously
-- **Sentiment Analysis**: Analyzes news sentiment to improve rate optimization decisions
-- **Email Notifications**: Sends HTML-formatted alerts when optimal rates are detected
-- **Error Handling**: Comprehensive error handling and logging for debugging
+- **Lock Mechanism**: Prevents multiple monitoring processes from running simultaneously.
+- **Sentiment Analysis**: Analyzes news sentiment to assist rate optimization decisions, with news fetch done using [Perplexity.AI](https://Perplexity.AI)
+- **Email Notifications**: Sends HTML-formatted alerts when optimal rates are detected, through Gmail SMTP
+- **Error Handling**: Comprehensive error handling and logging for debugging, so the user never encounters an `Internal Server Error` adapted from [MelodySyncer](https://github.com/aryankeluskar/MelodySyncer)
 
 ### Optimization Logic
 
