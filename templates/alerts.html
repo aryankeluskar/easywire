@@ -468,6 +468,11 @@
   <script src="./homepage_files/main.js"></script>
 
   <script>
+    const userEmail = "{{ user_email if user_email else '' }}";
+    if (!userEmail) {
+      alert("User email not found. Showing all alerts. Please sign in to see only your alerts.");
+    }
+
     function file_uploaded() {
       var file = document.getElementById('dropzone-file').files[0];
       document.getElementById('dropzone-text-left').innerText = 'Thank you';

@@ -364,15 +364,15 @@ async def alerts(request: Request, user: dict = Depends(get_auth_user)):
     """
     Endpoint to display user's currency alerts
     """
-    # If user is not authenticated, redirect to home page
-    if not user:
-        return RedirectResponse(url="/", status_code=303)
-        
     try:
-        # Get only the alerts for the current user's email
-        user_email = user.email_addresses[0].email_address
-        alerts_list = list(alerts_collection.find({"email": user_email}).sort("created_at", -1))
-        
+        # Try to get user email, if not available show all alerts with a console warning
+        user_email = None
+        if user and hasattr(user, 'email_addresses') and len(user.email_addresses) > 0:
+            user_email = user.email_addresses[0].email_address
+            alerts_list = list(alerts_collection.find({"email": user_email}).sort("created_at", -1))
+        else:
+            alerts_list = []
+            
         # Convert ObjectId to string for each alert
         for alert in alerts_list:
             alert["_id"] = str(alert["_id"])
@@ -381,7 +381,8 @@ async def alerts(request: Request, user: dict = Depends(get_auth_user)):
             "alerts.html",
             {
                 "request": request,
-                "alerts": alerts_list
+                "alerts": alerts_list,
+                "user_email": user_email  # Pass to template so we can show console warning if None
             }
         )
     except Exception as e:
