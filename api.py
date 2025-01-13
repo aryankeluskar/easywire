@@ -218,9 +218,9 @@ async def fetch_forex_data(from_currency: str, to_currency: str):
 # async def graph_usd_inr_all():
 #     return FileResponse("data/usd_inr_all.png")
 
-# @app.get("/favicon.ico")
-# async def favicon():
-#     return FileResponse("favicon.ico")
+@app.get("/favicon.ico")
+async def favicon():
+    return FileResponse("favicon.ico")
 
 @app.get("/success")
 async def success(request: Request, from_curr: str, to_curr: str, user = Depends(get_auth_user)):
