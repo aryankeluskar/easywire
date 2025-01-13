@@ -11,11 +11,11 @@
 
 ## 🔍 Monitoring System
 
-The monitoring system continuously tracks exchange rates and sends notifications when optimal rates are detected. It uses Alpha Vantage API for real-time forex data and implements rate limiting to stay within API constraints.
+The monitoring system continuously tracks exchange rates and sends notifications when optimal rates are detected. It uses Alpha Vantage API for real-time forex data and implements rate limiting to stay within API constraints. It is hosted on [cron-job.org](cron-job.org) and runs every 60 minutes.
 
 ### Monitoring Logs
 
-Each monitoring job execution is logged with the following structure:
+Each monitoring job execution is logged in MongoDB Atlas with the following structure:
 
 ```json
 {
@@ -39,7 +39,6 @@ Each monitoring job execution is logged with the following structure:
 
 - **Rate Limiting**: Implements a sliding window rate limiter for Alpha Vantage API (5 calls per minute)
 - **Lock Mechanism**: Prevents multiple monitoring processes from running simultaneously
-- **Historical Data**: Maintains 7-day rate history for trend analysis
 - **Sentiment Analysis**: Analyzes news sentiment to improve rate optimization decisions
 - **Email Notifications**: Sends HTML-formatted alerts when optimal rates are detected
 - **Error Handling**: Comprehensive error handling and logging for debugging
@@ -49,9 +48,6 @@ Each monitoring job execution is logged with the following structure:
 Rate is considered optimal when either:
 1. Current rate is better than 7-day average by more than 1 standard deviation
 2. Rate is moderately good (>0.5 std dev better than average) AND news sentiment is positive
-
-
-
 
 ## 🚀 Quickstart
 

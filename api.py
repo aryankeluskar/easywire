@@ -14,6 +14,7 @@ import re
 from pymongo import MongoClient
 import socket
 import hashlib
+import aiohttp
 
 load_dotenv()
 
@@ -198,111 +199,17 @@ async def data(
     return RedirectResponse(url=f"/success?from_curr={from_currency}&to_curr={to_currency}", status_code=303)
 
 async def fetch_forex_data(from_currency: str, to_currency: str):
-    """Helper function to fetch forex data from Alpha Vantage, GDP from World Bank API, and news from custom API"""
-    ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
-    
-    # Currency to country code mapping (for World Bank API)
-    CURRENCY_TO_COUNTRY = {
-        'USD': 'US',
-        'EUR': 'EU',
-        'GBP': 'GB',
-        'JPY': 'JP',
-        'AUD': 'AU',
-        'CAD': 'CA',
-        'CHF': 'CH',
-        'CNY': 'CN',
-        'INR': 'IN',
-        'NZD': 'NZ'
-    }
-    
-    # Fetch current exchange rate
-    url = f"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency={from_currency}&to_currency={to_currency}&apikey={ALPHA_VANTAGE_API_KEY}"
-    
+    """Helper function to fetch forex data from backend API"""
     try:
-        response = requests.get(url, timeout=30)
-        response.raise_for_status()
-        data = response.json()
+        backend_url = "https://ewb.aryankeluskar.com"
+        url = f"{backend_url}/forex_data?from_currency={from_currency}&to_currency={to_currency}"
         
-        if "Realtime Currency Exchange Rate" not in data:
-            raise Exception("Failed to fetch forex data from Alpha Vantage")
-        
-        exchange_rate = float(data["Realtime Currency Exchange Rate"]["5. Exchange Rate"])
-        
-        # Fetch historical data for predictions
-        historical_url = f"https://www.alphavantage.co/query?function=FX_DAILY&from_symbol={from_currency}&to_symbol={to_currency}&apikey={ALPHA_VANTAGE_API_KEY}"
-        historical_response = requests.get(historical_url, timeout=30)
-        historical_response.raise_for_status()
-        historical_data = historical_response.json()
-        
-        if "Time Series FX (Daily)" not in historical_data:
-            raise Exception("Failed to fetch historical forex data from Alpha Vantage")
-            
-        time_series = historical_data["Time Series FX (Daily)"]
-        dates = sorted(time_series.keys(), reverse=True)
-        
-        # Calculate 52-week high and low
-        high_52 = -float('inf')
-        low_52 = float('inf')
-        for date in dates[:252]:  # ~252 trading days in a year
-            high_52 = max(high_52, float(time_series[date]["2. high"]))
-            low_52 = min(low_52, float(time_series[date]["3. low"]))
-        
-        # Simple prediction based on 7-day trend
-        rates_7d = [float(time_series[date]["4. close"]) for date in dates[:7]]
-        trend = sum(rates_7d[i] - rates_7d[i+1] for i in range(len(rates_7d)-1)) / (len(rates_7d)-1)
-        predicted_tomorrow = exchange_rate + trend
-
-        # Fetch GDP data from World Bank API
-        gdp_from = "N/A"
-        gdp_to = "N/A"
-        
-        if from_currency in CURRENCY_TO_COUNTRY and to_currency in CURRENCY_TO_COUNTRY:
-            from_country = CURRENCY_TO_COUNTRY[from_currency]
-            to_country = CURRENCY_TO_COUNTRY[to_currency]
-            
-            # World Bank API endpoints
-            wb_from_url = f"http://api.worldbank.org/v2/country/{from_country}/indicator/NY.GDP.MKTP.CD?format=json&per_page=1&mrnev=1"
-            wb_to_url = f"http://api.worldbank.org/v2/country/{to_country}/indicator/NY.GDP.MKTP.CD?format=json&per_page=1&mrnev=1"
-            
-            try:
-                # Fetch GDP for 'from' country
-                wb_from_response = requests.get(wb_from_url, timeout=30)
-                wb_from_data = wb_from_response.json()
-                if len(wb_from_data) > 1 and wb_from_data[1] and len(wb_from_data[1]) > 0:
-                    gdp_from = f"{(wb_from_data[1][0]['value'] / 1e12):.2f}T USD"
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, timeout=60) as response:
+                if response.status != 200:
+                    raise HTTPException(status_code=response.status, detail="Error fetching forex data from backend")
+                return await response.json()
                 
-                # Fetch GDP for 'to' country
-                wb_to_response = requests.get(wb_to_url, timeout=30)
-                wb_to_data = wb_to_response.json()
-                if len(wb_to_data) > 1 and wb_to_data[1] and len(wb_to_data[1]) > 0:
-                    gdp_to = f"{(wb_to_data[1][0]['value'] / 1e12):.2f}T USD"
-            except Exception as e:
-                print(f"Error fetching GDP data: {str(e)}")
-                # Continue with N/A values for GDP if there's an error
-
-        # Fetch news from custom API
-        news_url = "https://ewb.aryankeluskar.com/generate_data"
-        news_response = requests.get(news_url, params={
-            "from_currency": from_currency,
-            "to_currency": to_currency,
-            "password": os.getenv('API_PASSWORD')
-        }, timeout=30)
-        news_response.raise_for_status()
-        news_data = news_response.json()
-        
-        return {
-            "current_rate": str(exchange_rate),
-            "opening_price": str(float(time_series[dates[0]]["1. open"])),
-            "closing_price": str(float(time_series[dates[0]]["4. close"])),
-            "high_52": str(high_52),
-            "low_52": str(low_52),
-            "predicted_change_tomorrow": trend > 0,
-            "predicted_rate_tomorrow": str(predicted_tomorrow),
-            "gdp_from_country": gdp_from,
-            "gdp_to_country": gdp_to,
-            "top5_news_articles": news_data.get("top5_news_articles", [])
-        }
-        
     except Exception as e:
         print(f"Error fetching forex data: {str(e)}")
         raise HTTPException(status_code=500, detail="Unable to fetch forex data. Please try again later.")
