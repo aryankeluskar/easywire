@@ -1,16 +1,23 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Return Home Button -->
-<!-- <div class="fixed top-4 right-4">
-    <a href="https://dub.sh/easywire" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200">
-        Return Home
-    </a>
-</div> -->
+<!-- ApexCharts Library -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
 <div class="container mx-auto px-4 py-8 mt-10">
     <div class="max-w-4xl mx-auto mt-10">
         <h1 class="c0cnt ce627 cwr74 cfatl crlpf cbwmu c2gcs cr5d0 cvxf3 ch47f casec mb-8" style="font-size: 2em; text-align: center;">{{ from_curr }} to {{ to_curr }} Exchange Rate Analysis</h1>
         
+        <!-- Price Chart Card -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Price History & Forecast</h2>
+            <div class="flex gap-4 mb-4">
+                <button onclick="switchChartType('historical')" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">Historical Data</button>
+                <button onclick="switchChartType('forecast')" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">6-Month Forecast</button>
+            </div>
+            <div id="priceChart" class="w-full h-[400px]"></div>
+        </div>
+
         <!-- Current Rates Card -->
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h2 class="text-xl font-semibold mb-4">Current Exchange Rates</h2>
@@ -92,4 +99,124 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+
+<script>
+// Sample data for demonstration
+const historicalData = [
+    {% for date, data in forex_data.historical_data.items() %}
+    {
+        x: new Date('{{ date }}').getTime(),
+        y: [{{ data.open }}, {{ data.high }}, {{ data.low }}, {{ data.close }}]
+    },
+    {% endfor %}
+];
+
+const forecastData = [
+    {% for date, value in forex_data.forecast_data.items() %}
+    {
+        x: new Date('{{ date }}').getTime(),
+        y: {{ value }}
+    },
+    {% endfor %}
+];
+
+let currentChart = 'historical';
+
+const chartOptions = {
+    series: [{
+        name: 'Price',
+        data: historicalData.map(item => ({
+            x: item.x,
+            y: item.y[3] // Using closing price
+        })),
+        type: 'area',
+    }],
+    chart: {
+        height: 400,
+        type: 'area',
+        animations: {
+            enabled: true
+        },
+        toolbar: {
+            show: true,
+            tools: {
+                download: true,
+                selection: true,
+                zoom: true,
+                zoomin: true,
+                zoomout: true,
+                pan: true,
+            }
+        }
+    },
+    fill: {
+        type: 'gradient',
+        gradient: {
+            shadeIntensity: 1,
+            opacityFrom: 0.7,
+            opacityTo: 0.3,
+            stops: [0, 90, 100],
+            colorStops: [
+                {
+                    offset: 0,
+                    color: '#22c55e',
+                    opacity: 1
+                },
+                {
+                    offset: 100,
+                    color: '#ef4444',
+                    opacity: 1
+                }
+            ]
+        }
+    },
+    title: {
+        text: '{{ from_curr }}/{{ to_curr }} Exchange Rate',
+        align: 'left'
+    },
+    xaxis: {
+        type: 'datetime'
+    },
+    yaxis: {
+        tooltip: {
+            enabled: true
+        }
+    },
+    tooltip: {
+        enabled: true,
+        theme: 'dark'
+    }
+};
+
+const chart = new ApexCharts(document.querySelector('#priceChart'), chartOptions);
+chart.render();
+
+function switchChartType(type) {
+    if (type === currentChart) return;
+    
+    currentChart = type;
+    if (type === 'historical') {
+        chart.updateOptions({
+            chart: { type: 'area' },
+            series: [{
+                name: 'Price',
+                data: historicalData.map(item => ({
+                    x: item.x,
+                    y: item.y[3] // Using closing price
+                })),
+                type: 'area'
+            }]
+        });
+    } else {
+        chart.updateOptions({
+            chart: { type: 'area' },
+            series: [{
+                name: 'Forecast',
+                data: forecastData,
+                type: 'area'
+            }]
+        });
+    }
+}
+</script>
+{% endblock %}

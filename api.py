@@ -5,6 +5,8 @@ from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.gzip import GZipMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from dotenv import load_dotenv
 import os
 import requests
@@ -29,6 +31,11 @@ alerts_collection = db['alerts']
 clerk = Clerk(bearer_auth=os.getenv('CLERK_SECRET_KEY'))
 
 app = FastAPI()
+
+# Add GZip compression
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -36,6 +43,16 @@ app.add_middleware(
     allow_headers=["*"],
     allow_credentials=True,
 )
+
+# Add trusted host middleware
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["*"]
+)
+
+# Cache configuration
+TEMPLATE_CACHE = {}
+CACHE_DURATION = timedelta(minutes=5)
 
 # Clerk authentication middleware
 async def get_auth_user(request: Request):
@@ -104,25 +121,36 @@ templates = Jinja2Templates(directory=templates_dir)
 VALID_CURRENCIES = {'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'INR', 'NZD'}
 
 @app.get("/")
-async def root(request: Request):
+async def root(request: Request, response: Response):
     """
     ### Root Endpoint
     A function that serves the root endpoint of the API. It returns a TemplateResponse object that
-    renders the "home.html" template. This function is decorated with the `@app.get("/")` decorator,
-    which means it will handle GET requests to the root URL ("/").
-    ---
-    Returns:
-        TemplateResponse: A TemplateResponse object rendering the "home.html" template.
+    renders the "home.html" template with caching enabled.
     """
+    cache_key = "home_template"
     
-    print(f"Serving template from: {os.path.join(templates_dir, 'home.html')}")
-
-    return templates.TemplateResponse(
+    # Check if we have a cached version
+    if cache_key in TEMPLATE_CACHE:
+        cached_response, cached_time = TEMPLATE_CACHE[cache_key]
+        if datetime.now() - cached_time < CACHE_DURATION:
+            # Set cache headers
+            response.headers["Cache-Control"] = f"public, max-age={int(CACHE_DURATION.total_seconds())}"
+            return cached_response
+    
+    # If no cache or expired, generate new response
+    template_response = templates.TemplateResponse(
         "home.html",
         {
             "request": request
         }
     )
+    
+    # Cache the response
+    TEMPLATE_CACHE[cache_key] = (template_response, datetime.now())
+    
+    # Set cache headers
+    response.headers["Cache-Control"] = f"public, max-age={int(CACHE_DURATION.total_seconds())}"
+    return template_response
 
 
 @app.post("/data")

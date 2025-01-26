@@ -7,12 +7,23 @@
   <title>EasyWire</title>
   <link rel="icon" type="image/x-icon" href="./homepage_files/some pfp.jpg">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  
+  <!-- Resource hints for critical resources -->
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://cruip.com">
+  <link rel="preconnect" href="https://clerk.easywire.aryankeluskar.com">
+  
+  <!-- Critical CSS loaded synchronously -->
   <link rel="stylesheet" href="https://unpkg.com/flowbite@1.4.4/dist/flowbite.min.css" />
-  <link media="all"
-    href="https://cruip.com/wp-content/cache/autoptimize/css/autoptimize_54fb091c550c668c4f261c1a2439a891.css"
-    rel="stylesheet">
-  <link href="./homepage_files/flatpickr.min.css" rel="stylesheet">
-  <link href="./homepage_files/style.css" rel="stylesheet">
+  
+  <!-- Non-critical CSS loaded asynchronously -->
+  <link rel="preload" as="style" href="https://cruip.com/wp-content/cache/autoptimize/css/autoptimize_54fb091c550c668c4f261c1a2439a891.css" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="./homepage_files/flatpickr.min.css" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" as="style" href="./homepage_files/style.css" onload="this.onload=null;this.rel='stylesheet'">
+  
+  <!-- Cache control meta tags -->
+  <meta http-equiv="Cache-Control" content="max-age=31536000">
+  
   <script>
     if (localStorage.getItem('dark-mode') === 'false' || !('dark-mode' in localStorage)) {
       document.querySelector('html').classList.remove('dark');
@@ -33,6 +44,7 @@
   </script>
   <script
     async
+    defer
     crossorigin="anonymous"
     data-clerk-publishable-key="pk_live_Y2xlcmsuZWFzeXdpcmUuYXJ5YW5rZWx1c2thci5jb20k"
     data-clerk-frontend-api="https://clerk.easywire.aryankeluskar.com"
@@ -371,4 +383,4 @@
   <script src="./homepage_files/main.js"></script>
   {% block extra_scripts %}{% endblock %}
 </body>
-</html> 
+</html>
