@@ -386,23 +386,37 @@ async def success(request: Request, from_curr: str, to_curr: str, user = Depends
                 latest_file = file
 
         print(f"Latest historical data file: {latest_file}")
-        historical_data = json.load(open(f"{data_dir}/historical_data/{latest_file}", "r"))
 
-        # if historical data is empty, set it to None
-        if not historical_data:
-            historical_data = None
+        is_data_available = 0
 
-        forex_data["historical_data"] = historical_data
+        if latest_file:
+            is_data_available = 1
+            historical_data = json.load(open(f"{data_dir}/historical_data/{latest_file}", "r"))
 
-        # Load forecast data
-        forecast_file = os.path.join(data_dir, "forecast_data", f"{from_curr}_{to_curr}_forecast.json")
-        if os.path.exists(forecast_file):
-            with open(forecast_file, 'r') as f:
-                forex_data["forecast_data"] = json.load(f)
+            # if historical data is empty, set it to None
+            if not historical_data:
+                historical_data = None
+
+            forex_data["historical_data"] = historical_data
+
+            # Load forecast data
+            forecast_file = os.path.join(data_dir, "forecast_data", f"{from_curr}_{to_curr}_forecast.json")
+            if os.path.exists(forecast_file):
+                with open(forecast_file, 'r') as f:
+                    forex_data["forecast_data"] = json.load(f)
+            else:
+                forex_data["forecast_data"] = {}
+
         else:
+            print("No historical data available")
+            forex_data["historical_data"] = {}
+            forex_data["historical_data"]["historical_data"] = {}
             forex_data["forecast_data"] = {}
+            forex_data["forecast_data"]["forecast_data"] = {}
+            is_data_available = 0
 
-        # print(f"Forecast data: {forex_data}")
+        print(f"Is data available: {is_data_available}")
+        print(f"Forecast data: {forex_data}")
             
         # Add success message to the template
         return templates.TemplateResponse(
@@ -412,7 +426,8 @@ async def success(request: Request, from_curr: str, to_curr: str, user = Depends
                 "to_curr": to_curr,
                 "request": request,
                 "forex_data": forex_data,
-                "success_message": "Successfully fetched forex data!"
+                "success_message": "Successfully fetched forex data!",
+                "is_data_available": is_data_available
             }
         )
 
