@@ -1,6 +1,6 @@
 import json
 from typing import Annotated
-from fastapi import FastAPI, File, UploadFile, Form, Request, HTTPException, Depends
+from fastapi import FastAPI, File, UploadFile, Form, Request, HTTPException, Depends, Response
 from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -33,7 +33,7 @@ clerk = Clerk(bearer_auth=os.getenv('CLERK_SECRET_KEY'))
 app = FastAPI()
 
 # Add GZip compression
-app.add_middleware(GZipMiddleware, minimum_size=1000)
+app.add_middleware(GZipMiddleware, minimum_size=512)
 
 # Add CORS middleware
 app.add_middleware(
@@ -51,8 +51,7 @@ app.add_middleware(
 )
 
 # Cache configuration
-TEMPLATE_CACHE = {}
-CACHE_DURATION = timedelta(minutes=5)
+CACHE_DURATION = 300  # 5 minutes in seconds
 
 # Clerk authentication middleware
 async def get_auth_user(request: Request):
@@ -98,18 +97,43 @@ async def require_auth(user = Depends(get_auth_user)):
     return {"authenticated": True, "user": user}
 
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
+data_dir = os.path.join(os.path.dirname(__file__), "data")
+
+# Configure static files with caching and CDN headers
+class CachedStaticFiles(StaticFiles):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+        if response.status_code == 200:
+            # Cache for 1 year on CDN and browser
+            response.headers["Cache-Control"] = "public, max-age=31536000, s-maxage=31536000, immutable"
+            response.headers["Vary"] = "Accept-Encoding"
+            # Add CDN-specific headers
+            response.headers["Vercel-CDN-Cache-Control"] = "max-age=31536000"
+            response.headers["CDN-Cache-Control"] = "max-age=31536000"
+        return response
 
 app.mount(
     "/templates",
-    StaticFiles(
+    CachedStaticFiles(
         directory=templates_dir,
     ),
     name="templates",
 )
 
 app.mount(
+    "/data",
+    CachedStaticFiles(
+        directory=data_dir,
+    ),
+    name="data",
+)
+
+app.mount(
     "/homepage_files",
-    StaticFiles(
+    CachedStaticFiles(
         directory=templates_dir+"/homepage_files",
     ),
     name="homepage_files",
@@ -127,17 +151,16 @@ async def root(request: Request, response: Response):
     A function that serves the root endpoint of the API. It returns a TemplateResponse object that
     renders the "home.html" template with caching enabled.
     """
-    cache_key = "home_template"
+    # Generate ETag based on template file modification time
+    template_path = os.path.join(templates_dir, "home.html")
+    template_mtime = str(os.path.getmtime(template_path))
+    etag = hashlib.md5(template_mtime.encode()).hexdigest()
     
-    # Check if we have a cached version
-    if cache_key in TEMPLATE_CACHE:
-        cached_response, cached_time = TEMPLATE_CACHE[cache_key]
-        if datetime.now() - cached_time < CACHE_DURATION:
-            # Set cache headers
-            response.headers["Cache-Control"] = f"public, max-age={int(CACHE_DURATION.total_seconds())}"
-            return cached_response
+    # Check if client has valid cached version
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=304)
     
-    # If no cache or expired, generate new response
+    # Generate template response
     template_response = templates.TemplateResponse(
         "home.html",
         {
@@ -145,11 +168,12 @@ async def root(request: Request, response: Response):
         }
     )
     
-    # Cache the response
-    TEMPLATE_CACHE[cache_key] = (template_response, datetime.now())
+    # Set caching headers for Vercel Edge Network
+    response.headers["ETag"] = etag
+    response.headers["Cache-Control"] = f"public, max-age={CACHE_DURATION}, s-maxage={CACHE_DURATION}, stale-while-revalidate"
+    response.headers["Vercel-CDN-Cache-Control"] = f"max-age={CACHE_DURATION}"
+    response.headers["CDN-Cache-Control"] = f"max-age={CACHE_DURATION}"
     
-    # Set cache headers
-    response.headers["Cache-Control"] = f"public, max-age={int(CACHE_DURATION.total_seconds())}"
     return template_response
 
 
@@ -257,16 +281,20 @@ async def data(
     return RedirectResponse(url=f"/success?from_curr={from_currency}&to_curr={to_currency}", status_code=303)
 
 async def fetch_forex_data(from_currency: str, to_currency: str):
-    """Helper function to fetch forex data from backend API"""
+    """Helper function to fetch forex data from backend API and historical data from Alpha Vantage"""
     try:
+        # Fetch main forex data from backend (cached)
         backend_url = "https://ewb.aryankeluskar.com"
         url = f"{backend_url}/forex_data?from_currency={from_currency}&to_currency={to_currency}"
         
         async with aiohttp.ClientSession() as session:
+            # Fetch main forex data
             async with session.get(url, timeout=60) as response:
                 if response.status != 200:
                     raise HTTPException(status_code=response.status, detail="Error fetching forex data from backend")
-                return await response.json()
+                forex_data = await response.json()
+                
+                return forex_data
                 
     except Exception as e:
         print(f"Error fetching forex data: {str(e)}")
@@ -341,6 +369,40 @@ async def success(request: Request, from_curr: str, to_curr: str, user = Depends
 
         if not forex_data:
             raise ValueError("Empty response from forex service")
+        
+        # load historical data file names from data/historical_data where file name is from_curr_to_curr_timestamp.json
+        historical_data = []
+        for file in os.listdir(data_dir+"/historical_data"):
+            if f"{from_curr}_{to_curr}_" in file:
+                historical_data.append(file)
+
+        # only keep the latest (ie: the one with the highest timestamp, ie: the one with the highest number in its name. it does not have the timestamp in the json)
+        latest_timestamp = 0
+        latest_file = None
+        for file in historical_data:
+            curr_timestamp = int(file.split("_")[-1].split(".")[0])
+            if curr_timestamp > latest_timestamp:
+                latest_timestamp = curr_timestamp
+                latest_file = file
+
+        print(f"Latest historical data file: {latest_file}")
+        historical_data = json.load(open(f"{data_dir}/historical_data/{latest_file}", "r"))
+
+        # if historical data is empty, set it to None
+        if not historical_data:
+            historical_data = None
+
+        forex_data["historical_data"] = historical_data
+
+        # Load forecast data
+        forecast_file = os.path.join(data_dir, "forecast_data", f"{from_curr}_{to_curr}_forecast.json")
+        if os.path.exists(forecast_file):
+            with open(forecast_file, 'r') as f:
+                forex_data["forecast_data"] = json.load(f)
+        else:
+            forex_data["forecast_data"] = {}
+
+        # print(f"Forecast data: {forex_data}")
             
         # Add success message to the template
         return templates.TemplateResponse(
@@ -373,22 +435,26 @@ async def success(request: Request, from_curr: str, to_curr: str, user = Depends
             status_code=503
         )
     except requests.RequestException as e:
-        print(f"API Error: {str(e)}")
+        import sys
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        print(f"API Error at line {exc_tb.tb_lineno}: {str(e)}")
         return templates.TemplateResponse(
             "error.html",
             {
                 "request": request,
-                "error": "Unable to fetch forex data. Please try again later."
+                "error": f"Unable to fetch forex data (line {exc_tb.tb_lineno}). Please try again later."
             },
             status_code=500
         )
     except Exception as e:
-        print(f"Unexpected error: {str(e)}")
+        import sys
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        print(f"Unexpected error at line {exc_tb.tb_lineno}: {str(e)}")
         return templates.TemplateResponse(
             "error.html",
             {
                 "request": request,
-                "error": "An unexpected error occurred. Please try again later."
+                "error": f"An unexpected error occurred (line {exc_tb.tb_lineno}). Please try again later."
             },
             status_code=500
         )

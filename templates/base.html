@@ -9,21 +9,36 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   
   <!-- Resource hints for critical resources -->
-  <link rel="preconnect" href="https://unpkg.com">
-  <link rel="preconnect" href="https://cruip.com">
-  <link rel="preconnect" href="https://clerk.easywire.aryankeluskar.com">
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="preconnect" href="https://cruip.com" crossorigin>
+  <link rel="preconnect" href="https://clerk.easywire.aryankeluskar.com" crossorigin>
+  <link rel="dns-prefetch" href="https://unpkg.com">
+  <link rel="dns-prefetch" href="https://cruip.com">
+  <link rel="dns-prefetch" href="https://clerk.easywire.aryankeluskar.com">
   
-  <!-- Critical CSS loaded synchronously -->
-  <link rel="stylesheet" href="https://unpkg.com/flowbite@1.4.4/dist/flowbite.min.css" />
+  <!-- Critical CSS -->
+  <link rel="stylesheet" href="./homepage_files/critical.css">
   
   <!-- Non-critical CSS loaded asynchronously -->
-  <link rel="preload" as="style" href="https://cruip.com/wp-content/cache/autoptimize/css/autoptimize_54fb091c550c668c4f261c1a2439a891.css" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="./homepage_files/flatpickr.min.css" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" as="style" href="./homepage_files/style.css" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="https://unpkg.com/flowbite@1.4.4/dist/flowbite.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://unpkg.com/flowbite@1.4.4/dist/flowbite.min.css"></noscript>
+  
+  <link rel="preload" href="https://cruip.com/wp-content/cache/autoptimize/css/autoptimize_54fb091c550c668c4f261c1a2439a891.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://cruip.com/wp-content/cache/autoptimize/css/autoptimize_54fb091c550c668c4f261c1a2439a891.css"></noscript>
+  
+  <link rel="preload" href="./homepage_files/flatpickr.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="./homepage_files/flatpickr.min.css"></noscript>
+  
+  <link rel="preload" href="./homepage_files/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="./homepage_files/style.css"></noscript>
   
   <!-- Cache control meta tags -->
   <meta http-equiv="Cache-Control" content="max-age=31536000">
   
+  <!-- Preload key images -->
+  <link rel="preload" href="./homepage_files/wings.png" as="image">
+  
+  <!-- Dark mode script moved to inline for faster execution -->
   <script>
     if (localStorage.getItem('dark-mode') === 'false' || !('dark-mode' in localStorage)) {
       document.querySelector('html').classList.remove('dark');
@@ -31,17 +46,20 @@
       document.querySelector('html').classList.add('dark');
     }
   </script>
+
+  <!-- Clerk configuration -->
   <script>
-    // Get the current domain and set environment-specific configurations
     const domain = window.location.hostname;
     const isLocalhost = domain === "localhost";
     const clerkPubKey = isLocalhost 
-      ? "pk_test_cmVzb2x2ZWQtdmlwZXItOTYuY2xlcmsuYWNjb3VudHMuZGV2JA"  // Local test key
-      : "pk_live_Y2xlcmsuZWFzeXdpcmUuYXJ5YW5rZWx1c2thci5jb20k";  // Production key
+      ? "pk_test_cmVzb2x2ZWQtdmlwZXItOTYuY2xlcmsuYWNjb3VudHMuZGV2JA"
+      : "pk_live_Y2xlcmsuZWFzeXdpcmUuYXJ5YW5rZWx1c2thci5jb20k";
     const clerkDomain = isLocalhost 
       ? "http://localhost:8000" 
       : "https://clerk.easywire.aryankeluskar.com";
   </script>
+  
+  <!-- Load Clerk script asynchronously -->
   <script
     async
     defer
@@ -51,179 +69,10 @@
     src="https://clerk.easywire.aryankeluskar.com/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
     type="text/javascript">
   </script>
-  <script>
-    async function initClerk() {
-      try {
-        if (!window.Clerk) {
-          console.error('Clerk not loaded yet');
-          return;
-        }
-        
-        await window.Clerk.load();
 
-        // Add event listeners for auth state changes
-        window.Clerk.addListener(({ user }) => {
-          const signOutContainer = document.getElementById('sign-out-container');
-          const emailInput = document.getElementById('email');
-          if (signOutContainer) {
-            if (user) {
-              signOutContainer.innerHTML = `
-                <div class="auth-container" style="display: inline-flex; align-items: center; gap: 0.25rem;">
-                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="profile-button" style="padding: 0.4rem 0.6rem; font-size: 0.875rem; white-space: nowrap;">
-                    ${user.firstName}
-                  </button>
-                  <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-out-button" style="padding: 0.4rem 0.6rem; font-size: 0.875rem; white-space: nowrap;">
-                    Log Out
-                  </button>
-                </div>
-              `;
-              // Pre-fill and disable email input if user is logged in
-              if (emailInput) {
-                emailInput.value = user.primaryEmailAddress.emailAddress;
-                emailInput.setAttribute('readonly', 'readonly');
-              }
-              document.getElementById('profile-button').onclick = () => window.Clerk.openUserProfile();
-              document.getElementById('sign-out-button').onclick = async () => {
-                await window.Clerk.signOut();
-                document.getElementById('user-greeting').style.display = 'none';
-                document.getElementById('alerts-link').style.display = 'none';
-                document.getElementById('github-link').style.display = 'block';
-                document.getElementById('perplexity-link').style.display = 'block';
-                document.getElementById('contact-link').style.display = 'block';
-                window.location.href = '/';
-              };
-              // Show/hide elements based on authentication
-              document.getElementById('user-greeting').style.display = 'block';
-              document.getElementById('user-greeting').querySelector('span').textContent = `Home`;
-              document.getElementById('user-greeting').onclick = () => window.location.href = '/';
-              document.getElementById('alerts-link').style.display = 'block';
-              document.getElementById('github-link').style.display = 'none';
-              document.getElementById('perplexity-link').style.display = 'none';
-            } else {
-              signOutContainer.innerHTML = `
-                <button class="cpvyo cv7b2 cj90m cgvn6 c2gcs ccjiw cjnro c02c5" id="sign-in-button" style="padding: 0.4rem 0.6rem; font-size: 0.875rem; white-space: nowrap;">Sign In</button>
-              `;
-              document.getElementById('sign-in-button').onclick = () => window.Clerk.openSignIn();
-              // Show/hide elements based on authentication
-              document.getElementById('user-greeting').style.display = 'none';
-              document.getElementById('alerts-link').style.display = 'none';
-              document.getElementById('github-link').style.display = 'block';
-              document.getElementById('perplexity-link').style.display = 'block';
-            }
-          }
-        });
+  <!-- Load Clerk initialization script -->
+  <script src="./homepage_files/clerk-init.js" defer></script>
 
-      } catch (err) {
-        console.error('Error initializing Clerk:', err);
-      }
-    }
-
-    // Wait for Clerk to be available
-    function waitForClerk() {
-      if (window.Clerk) {
-        initClerk();
-      } else {
-        setTimeout(waitForClerk, 100);
-      }
-    }
-
-    // Start waiting for Clerk when the page loads
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', waitForClerk);
-    } else {
-      waitForClerk();
-    }
-  </script>
-  <style>
-    /* Remove focus outline from Clerk components */
-    .cl-component * {
-      outline: none !important;
-    }
-    .cl-component *:focus {
-      outline: none !important;
-      box-shadow: none !important;
-    }
-
-    /* Auth button styles */
-    .auth-container {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    @media (max-width: 768px) {
-      .auth-container {
-        gap: 0.25rem;
-        flex-wrap: nowrap;
-      }
-      .auth-container button {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.875rem;
-        white-space: nowrap;
-        min-width: auto;
-      }
-      .nav-list {
-        gap: 0.5rem;
-        flex-wrap: nowrap;
-      }
-      #profile-button, #sign-out-button {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.875rem;
-      }
-      .nav-list li {
-        flex-shrink: 0;
-      }
-    }
-
-    @keyframes shimmer {
-        0% {
-            transform: translateX(-100%);
-        }
-        100% {
-            transform: translateX(100%);
-        }
-    }
-
-    #loading-progress {
-        position: relative;
-        overflow: hidden;
-        background: linear-gradient(90deg, #0062ff, #147eff);
-        box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
-    }
-
-    #loading-progress::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        background: linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0) 0%,
-            rgba(255, 255, 255, 0.2) 50%,
-            rgba(255, 255, 255, 0) 100%
-        );
-        animation: shimmer 2s infinite;
-    }
-
-    /* Custom media query for perplexity link */
-    #perplexity-link {
-        display: none;
-    }
-
-    @media screen and (min-width: 768px) {
-        #perplexity-link {
-            display: block;
-        }
-    }
-
-    @media screen and (max-width: 767px) {
-        #perplexity-link {
-            display: none;
-        }
-    }
-  </style>
   {% block extra_head %}{% endblock %}
 </head>
 
@@ -379,8 +228,9 @@
     </footer>
   </div>
 
-  <script src="./homepage_files/alpinejs.min.js" defer=""></script>
-  <script src="./homepage_files/main.js"></script>
+  <!-- Load non-critical scripts at the end -->
+  <script src="./homepage_files/alpinejs.min.js" defer></script>
+  <script src="./homepage_files/main.js" defer></script>
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>
