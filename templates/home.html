@@ -1,6 +1,35 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% if show_loading %}
+<!-- Initial loading state for authenticated users -->
+<div id="auth-loading" class="fixed inset-0 flex flex-col items-center justify-center z-50" 
+     style="background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);">
+  <div class="p-8 rounded-lg shadow-lg max-w-md w-full mx-4" 
+       style="background: repeating-linear-gradient(0deg, rgba(235, 236, 255, 0.2) 0px, rgba(235, 236, 255, 0.2) 1px, transparent 1px, transparent 50px),
+              repeating-linear-gradient(90deg, rgba(235, 236, 255, 0.2) 0px, rgba(235, 236, 255, 0.2) 1px, transparent 1px, transparent 50px),
+              linear-gradient(to bottom, rgba(235, 236, 255, 0.97), rgba(220, 221, 255, 0.97));">
+      <div class="flex items-center justify-center mb-4">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+      <h3 class="text-lg font-semibold text-center mb-4 text-gray-900">Loading Your Profile</h3>
+  </div>
+</div>
+
+<!-- Hide loading state once page is ready -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const loadingEl = document.getElementById('auth-loading');
+    if (loadingEl) {
+      setTimeout(() => {
+        loadingEl.style.opacity = '0';
+        setTimeout(() => loadingEl.remove(), 300);
+      }, 500);
+    }
+  });
+</script>
+{% endif %}
+
 <section>
   <div class="c5fcz cnmmr cg498 cw2nq">
     <div class="cy6zq crh5c">
@@ -130,7 +159,9 @@
 {% endblock %}
 
 {% block extra_scripts %}
+{% if not static_render %}
 <script>
+  // Only include dynamic scripts for non-static renders
   function file_uploaded() {
     var file = document.getElementById('dropzone-file').files[0];
     document.getElementById('dropzone-text-left').innerText = 'Thank you';
@@ -172,8 +203,7 @@
   <div class="p-8 rounded-lg shadow-lg max-w-md w-full mx-4" 
        style="background: repeating-linear-gradient(0deg, rgba(235, 236, 255, 0.2) 0px, rgba(235, 236, 255, 0.2) 1px, transparent 1px, transparent 50px),
               repeating-linear-gradient(90deg, rgba(235, 236, 255, 0.2) 0px, rgba(235, 236, 255, 0.2) 1px, transparent 1px, transparent 50px),
-              linear-gradient(to bottom, rgba(235, 236, 255, 0.97), rgba(220, 221, 255, 0.97));
-              box-shadow: 0 0 30px rgba(200, 203, 248, 0.2);">
+              linear-gradient(to bottom, rgba(235, 236, 255, 0.97), rgba(220, 221, 255, 0.97));">
       <div class="flex items-center justify-center mb-4">
           <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
@@ -248,38 +278,20 @@
               // If in testing mode, don't submit the form
               if (isTestingLoadingScreen) {
                   console.log('Testing mode: Loading screen will remain visible');
-                  setTimeout(() => updateLoadingStatus('Test mode: Loading screen visible', 100), 4000);
-                  return; // Stop here in testing mode
+                  return;
               }
               
-              const response = await fetch('/data', {
-                  method: 'POST',
-                  body: formData
-              });
-              
-              if (response.redirected) {
-                  updateLoadingStatus('Redirecting to success page...', 100);
-                  window.location.href = response.url;
-              } else {
-                  const html = await response.text();
-                  document.documentElement.innerHTML = html;
-              }
+              // Submit the form
+              form.submit();
           } catch (error) {
               console.error('Error:', error);
-              updateLoadingStatus('An error occurred. Please try again.', 100);
-              
-              // Re-enable submit button on error
+              loadingOverlay.classList.add('hidden');
               submitButton.disabled = false;
               submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
-              
-              // Hide loading overlay after a short delay if not in testing mode
-              if (!isTestingLoadingScreen) {
-                  setTimeout(() => {
-                      loadingOverlay.classList.add('hidden');
-                  }, 2000);
-              }
+              alert('An error occurred. Please try again.');
           }
       });
   });
 </script>
+{% endif %}
 {% endblock %}

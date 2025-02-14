@@ -145,11 +145,11 @@ templates = Jinja2Templates(directory=templates_dir)
 VALID_CURRENCIES = {'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'INR', 'NZD'}
 
 @app.get("/")
-async def root(request: Request, response: Response):
+async def root(request: Request, response: Response, user = Depends(get_auth_user)):
     """
     ### Root Endpoint
-    A function that serves the root endpoint of the API. It returns a TemplateResponse object that
-    renders the "home.html" template with caching enabled.
+    A function that serves the root endpoint of the API. It returns a static HTML for non-authenticated users
+    and a dynamic template for authenticated users.
     """
     # Generate ETag based on template file modification time
     template_path = os.path.join(templates_dir, "home.html")
@@ -160,21 +160,52 @@ async def root(request: Request, response: Response):
     if request.headers.get("if-none-match") == etag:
         return Response(status_code=304)
     
-    # Generate template response
-    template_response = templates.TemplateResponse(
-        "home.html",
-        {
-            "request": request
-        }
-    )
-    
-    # Set caching headers for Vercel Edge Network
+    # Set common caching headers
     response.headers["ETag"] = etag
     response.headers["Cache-Control"] = f"public, max-age={CACHE_DURATION}, s-maxage={CACHE_DURATION}, stale-while-revalidate"
     response.headers["Vercel-CDN-Cache-Control"] = f"max-age={CACHE_DURATION}"
     response.headers["CDN-Cache-Control"] = f"max-age={CACHE_DURATION}"
+
+    # For authenticated users, show loading state while template renders
+    if user:
+        return templates.TemplateResponse(
+            "home.html",
+            {
+                "request": request,
+                "show_loading": True,
+                "user": user
+            }
+        )
     
-    return template_response
+    # For non-authenticated users, serve static HTML from cache if available
+    static_html_path = os.path.join(templates_dir, "static_home.html")
+    
+    # If static HTML doesn't exist or is older than template, regenerate it
+    should_regenerate = (
+        not os.path.exists(static_html_path) or 
+        os.path.getmtime(static_html_path) < os.path.getmtime(template_path)
+    )
+    
+    if should_regenerate:
+        # Generate static version by rendering template without user
+        static_content = templates.TemplateResponse(
+            "home.html",
+            {
+                "request": request,
+                "static_render": True  # Flag to indicate static rendering
+            }
+        ).body.decode()
+        
+        # Save to static file
+        with open(static_html_path, "w") as f:
+            f.write(static_content)
+    
+    # Serve static file with proper headers
+    return FileResponse(
+        static_html_path,
+        headers=response.headers,
+        media_type="text/html"
+    )
 
 
 @app.post("/data")
