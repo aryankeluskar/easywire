@@ -166,6 +166,17 @@ async def root(request: Request, response: Response, user = Depends(get_auth_use
     response.headers["Vercel-CDN-Cache-Control"] = f"max-age={CACHE_DURATION}"
     response.headers["CDN-Cache-Control"] = f"max-age={CACHE_DURATION}"
 
+    # For non-authenticated users, serve static HTML from cache if available
+    static_html_path = os.path.join(templates_dir, "static_home.html")
+
+    if not user:
+        # Serve static file with proper headers
+        return FileResponse(
+            static_html_path,
+            headers=response.headers,
+            media_type="text/html"
+        )
+
     # For authenticated users, show loading state while template renders
     if user:
         return templates.TemplateResponse(
@@ -176,9 +187,6 @@ async def root(request: Request, response: Response, user = Depends(get_auth_use
                 "user": user
             }
         )
-    
-    # For non-authenticated users, serve static HTML from cache if available
-    static_html_path = os.path.join(templates_dir, "static_home.html")
     
     # If static HTML doesn't exist or is older than template, regenerate it
     should_regenerate = (
