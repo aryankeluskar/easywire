@@ -1,7 +1,9 @@
 import time
+
 print(f"UNIX timestamp before import: {time.time()}")
 
 # Run the clerk_backend_api patch first
+import uvicorn
 import os
 import subprocess
 import sys
@@ -658,3 +660,6 @@ async def delete_alerts(request: Request):
             "success": False,
             "message": str(e)
         }, status_code=500)
+    
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=3000)
