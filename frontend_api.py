@@ -1,6 +1,38 @@
 import time
-print("UNIX timestamp before import:", time.time())
+print(f"UNIX timestamp before import: {time.time()}")
 
+# Run the clerk_backend_api patch first
+import os
+import subprocess
+import sys
+
+# Try to run our patch script
+try:
+    patch_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "patch_clerk.py")
+    if os.path.exists(patch_script):
+        print("Running clerk_backend_api patch script...")
+        # Option 1: Run as subprocess (for deployment environments where we have permissions)
+        try:
+            result = subprocess.run([sys.executable, patch_script], capture_output=True, text=True)
+            print(result.stdout)
+            if result.returncode != 0:
+                print(f"Patch script error: {result.stderr}")
+        except Exception as e:
+            print(f"Error running patch script: {e}")
+        
+        # Option 2: Import and run directly (in case subprocess isn't allowed)
+        try:
+            import patch_clerk
+            patch_result = patch_clerk.main()
+            print(f"Direct patch result: {patch_result}")
+        except Exception as e:
+            print(f"Error importing patch_clerk: {e}")
+    else:
+        print(f"Patch script not found at {patch_script}")
+except Exception as e:
+    print(f"General error in patching step: {e}")
+
+# Import other modules
 import json
 from typing import Annotated
 from fastapi import FastAPI, File, UploadFile, Form, Request, HTTPException, Depends, Response
@@ -24,7 +56,7 @@ import jwt
 
 load_dotenv()
 
-print("UNIX timestamp after import:", time.time())
+print(f"UNIX timestamp after import: {time.time()}")
 
 # MongoDB Connection
 MONGO_CONNECTION_STRING = os.getenv('MONGO_CONNECTION_STRING_P1') + os.getenv('MONGODB_USER_PWD') + os.getenv('MONGO_CONNECTION_STRING_P2')
