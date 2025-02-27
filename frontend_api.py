@@ -1,3 +1,6 @@
+import time
+print("UNIX timestamp before import:", time.time())
+
 import json
 from typing import Annotated
 from fastapi import FastAPI, File, UploadFile, Form, Request, HTTPException, Depends, Response
@@ -21,6 +24,8 @@ import jwt
 
 load_dotenv()
 
+print("UNIX timestamp after import:", time.time())
+
 # MongoDB Connection
 MONGO_CONNECTION_STRING = os.getenv('MONGO_CONNECTION_STRING_P1') + os.getenv('MONGODB_USER_PWD') + os.getenv('MONGO_CONNECTION_STRING_P2')
 mongo_client = MongoClient(MONGO_CONNECTION_STRING)
@@ -31,6 +36,8 @@ alerts_collection = db['alerts']
 clerk = Clerk(bearer_auth=os.getenv('CLERK_SECRET_KEY'))
 
 app = FastAPI()
+
+print("UNIX timestamp after Clerk and FastAPI initialization:", time.time())
 
 # Add GZip compression
 app.add_middleware(GZipMiddleware, minimum_size=512)
@@ -52,6 +59,8 @@ app.add_middleware(
 
 # Cache configuration
 CACHE_DURATION = 300  # 5 minutes in seconds
+
+print("UNIX timestamp after middleware:", time.time())
 
 # Clerk authentication middleware
 async def get_auth_user(request: Request):
@@ -151,6 +160,7 @@ async def root(request: Request, response: Response, user = Depends(get_auth_use
     A function that serves the root endpoint of the API. It returns a static HTML for non-authenticated users
     and a dynamic template for authenticated users.
     """
+    print("UNIX timestamp at the start of root:", time.time())
     # Generate ETag based on template file modification time
     template_path = os.path.join(templates_dir, "home.html")
     template_mtime = str(os.path.getmtime(template_path))
@@ -170,6 +180,7 @@ async def root(request: Request, response: Response, user = Depends(get_auth_use
     static_html_path = os.path.join(templates_dir, "static_home.html")
 
     if not user:
+        print("UNIX timestamp at the start of FileResponse:", time.time())
         # Serve static file with proper headers
         return FileResponse(
             static_html_path,
@@ -179,6 +190,7 @@ async def root(request: Request, response: Response, user = Depends(get_auth_use
 
     # For authenticated users, show loading state while template renders
     if user:
+        print("UNIX timestamp at the start of TemplateResponse:", time.time())
         return templates.TemplateResponse(
             "home.html",
             {
@@ -195,6 +207,7 @@ async def root(request: Request, response: Response, user = Depends(get_auth_use
     )
     
     if should_regenerate:
+        print("UNIX timestamp at the start of TemplateResponse:", time.time())
         # Generate static version by rendering template without user
         static_content = templates.TemplateResponse(
             "home.html",
@@ -208,13 +221,13 @@ async def root(request: Request, response: Response, user = Depends(get_auth_use
         with open(static_html_path, "w") as f:
             f.write(static_content)
     
+    print("UNIX timestamp at the start of FileResponse:", time.time())
     # Serve static file with proper headers
     return FileResponse(
         static_html_path,
         headers=response.headers,
         media_type="text/html"
     )
-
 
 @app.post("/data")
 async def data(
