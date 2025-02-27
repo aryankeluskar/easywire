@@ -1,0 +1,16 @@
+{
+    "builds": [
+        {
+            "src": "frontend_api.py",
+            "use": "@vercel/python",
+            "installCommand": "pip install -r requirements.txt",
+            "buildCommand": "uvicorn frontend_api:app --host 0.0.0.0 --port 3000"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "frontend_api:app"
+        }
+    ]
+}
